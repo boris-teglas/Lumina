@@ -95,6 +95,7 @@ export default function Home() {
                 Flaguj nepouzdane klijente koji otkazuju u zadnji čas. Sledeći put kada pokušaju da zakažu, sistem stavlja njihov termin na čekanje kako bi ih ti ručno odobrila (i zatražila depozit).
               </p>
             </div>
+          </div>
         </section>
 
         {/* Testimonials Section */}
