@@ -312,3 +312,38 @@
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0px); }
 }
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .booking-container {
+    padding: 20px 12px;
+  }
+  
+  .salon-name {
+    font-size: 1.5rem;
+  }
+  
+  .section-card {
+    padding: 16px;
+  }
+  
+  .stamp-circle {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+  
+  .slots-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 6px;
+  }
+  
+  .day-btn {
+    min-width: 55px;
+    padding: 10px 8px;
+  }
+  
+  .day-date {
+    font-size: 1rem;
+  }
+}

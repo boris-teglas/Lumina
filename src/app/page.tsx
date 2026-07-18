@@ -9,9 +9,9 @@ export default function Home() {
           <Link href="/" className="logo-brand" style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit' }}>
             ✦ GlowLink
           </Link>
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <Link href="/dashboard" className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
-              Dashboard
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <Link href="/auth" className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+              Prijavi se
             </Link>
             <Link href="/jelena-nokti" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
               Vidi Demo Booking
@@ -26,7 +26,7 @@ export default function Home() {
           <span className="badge badge-success" style={{ marginBottom: '16px', background: 'rgba(236, 72, 153, 0.1)', color: 'var(--primary)' }}>
             Nova era zakazivanja za salone lepote 🚀
           </span>
-          <h1 style={{ fontSize: '3.5rem', lineHeight: '1.15', marginBottom: '24px', maxWidth: '800px', margin: '0 auto 24px auto' }}>
+          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: '1.15', marginBottom: '24px', maxWidth: '800px', margin: '0 auto 24px auto' }}>
             Pretvori pratioce sa Instagrama u <span style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>redovne klijente</span>
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto 40px auto', lineHeight: '1.6' }}>
@@ -34,7 +34,7 @@ export default function Home() {
           </p>
 
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/dashboard" className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>
+            <Link href="/auth" className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>
               Započni besplatno
             </Link>
             <Link href="/jelena-nokti" className="btn btn-secondary" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>
