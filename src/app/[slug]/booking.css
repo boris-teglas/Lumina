@@ -200,6 +200,17 @@
   font-weight: 600;
 }
 
+.slot-btn.booked,
+.slot-btn:disabled {
+  opacity: 0.25;
+  text-decoration: line-through;
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .loyalty-widget {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
   border: 1px solid rgba(245, 158, 11, 0.2);
