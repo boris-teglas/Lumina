@@ -55,7 +55,7 @@ export default function Dashboard() {
   const [demoMode, setDemoMode] = useState(false)
 
   // Navigation
-  const [activeTab, setActiveTab] = useState<'stats' | 'calendar' | 'crm' | 'services' | 'story' | 'settings' | 'reviews'>('stats')
+  const [activeTab, setActiveTab] = useState<'stats' | 'calendar' | 'crm' | 'services' | 'story' | 'settings' | 'reviews' | 'billing'>('stats')
 
   // Core Data State
   const [salon, setSalon] = useState<any>(null)
@@ -82,6 +82,7 @@ export default function Dashboard() {
   const [calendarViewMode, setCalendarViewMode] = useState<'list' | 'weekly'>('weekly')
   const [selectedAppDetails, setSelectedAppDetails] = useState<Appointment | null>(null)
   const [settingsSaving, setSettingsSaving] = useState(false)
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
   // Block time modal states
   const [showBlockModal, setShowBlockModal] = useState(false)
@@ -114,7 +115,9 @@ export default function Dashboard() {
       name: 'Nails & Lashes by Jelena',
       slug: 'jelena-nokti',
       theme_color: '#ec4899',
-      description: 'Sve za Vaš savršen izgled na jednom mestu.'
+      description: 'Sve za Vaš savršen izgled na jednom mestu.',
+      subscription_status: 'trial',
+      subscription_expires_at: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString()
     })
     
     setServices([
@@ -1319,6 +1322,12 @@ export default function Dashboard() {
           >
             ⚙ Podešavanja
           </li>
+          <li
+            className={`nav-item ${activeTab === 'billing' ? 'active' : ''}`}
+            onClick={() => setActiveTab('billing')}
+          >
+            💳 Pretplata & Račun
+          </li>
         </ul>
 
         {/* User Info footer */}
@@ -1375,6 +1384,37 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {/* Billing Expiry Banner */}
+        {(() => {
+          if (!salon) return null
+          const isExpired = salon.subscription_status === 'expired' || 
+            (salon.subscription_expires_at && new Date(salon.subscription_expires_at).getTime() < Date.now())
+          
+          if (!isExpired) return null
+          
+          return (
+            <div className="glass-panel" style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid var(--danger)', padding: '16px', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+                <div>
+                  <h4 style={{ margin: 0, color: '#ff6b6b' }}>Vaša pretplata / besplatni probni period je istekao!</h4>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    Da biste nastavili sa primanjem rezervacija i korišćenjem planera, molimo aktivirajte Vaš nalog u pretplatničkom tabu.
+                  </p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                className="btn btn-primary" 
+                style={{ padding: '8px 16px', fontSize: '0.8rem', background: 'var(--danger)', borderColor: 'var(--danger)' }}
+                onClick={() => setActiveTab('billing')}
+              >
+                💳 Uplatite pretplatu
+              </button>
+            </div>
+          )
+        })()}
 
         {/* TAB 1: STATISTICS */}
         {activeTab === 'stats' && (
@@ -2767,6 +2807,202 @@ export default function Dashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {activeTab === 'billing' && (
+          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Status Card */}
+            <div className="glass-panel panel-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', padding: '28px' }}>
+              <div>
+                <span className="badge badge-warning" style={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                  {salon?.subscription_status === 'trial' ? 'Probna Verzija (Trial)' : 
+                   (salon?.subscription_status === 'active' ? 'Aktivan Nalog' : 'Pretplata Istekla')}
+                </span>
+                <h3 style={{ margin: '8px 0 4px 0', fontSize: '1.4rem' }}>
+                  {salon?.subscription_status === 'trial' ? 'Koristite besplatni probni period' : 
+                   (salon?.subscription_status === 'active' ? 'Vaša pretplata je aktivna!' : 'Pristup planerima je zaključan')}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
+                  {(() => {
+                    if (!salon?.subscription_expires_at) return 'Nema aktivnog perioda.'
+                    const expDate = new Date(salon.subscription_expires_at)
+                    const diff = expDate.getTime() - Date.now()
+                    const days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
+                    
+                    if (diff < 0) {
+                      return `Pretplata je istekla dana ${expDate.toLocaleDateString('sr-RS')}.`
+                    }
+                    return `Ističe dana: ${expDate.toLocaleDateString('sr-RS')} (preostalo još ${days} dana).`
+                  })()}
+                </p>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  type="button"
+                  className={`btn ${billingPeriod === 'monthly' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '10px 16px', fontSize: '0.85rem' }}
+                  onClick={() => setBillingPeriod('monthly')}
+                >
+                  Mesečni plan (2.000 RSD)
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${billingPeriod === 'yearly' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '10px 16px', fontSize: '0.85rem', borderColor: 'var(--accent-gold)', color: billingPeriod === 'yearly' ? '#ffffff' : 'var(--accent-gold)' }}
+                  onClick={() => setBillingPeriod('yearly')}
+                >
+                  Godišnji plan (18.000 RSD - 25% 🎁)
+                </button>
+              </div>
+            </div>
+
+            {/* Billing Guide & Payment Slip Section */}
+            <div className="glass-panel panel-card" style={{ padding: '28px' }}>
+              <h3 style={{ marginBottom: '8px' }}>Uputstvo za plaćanje</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '24px' }}>
+                Uplatite pretplatu skeniranjem IPS QR koda ispod pomoću mobilne aplikacije Vaše banke, ili popunite nalog za uplatu u banci/e-bankingu prema priloženom uzorku.
+              </p>
+
+              {/* Styled Serbian Uplatnica Container */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', background: '#fffdf0', border: '2px solid #d4af37', borderRadius: '12px', padding: '24px', color: '#1c1917', fontFamily: '"Plus Jakarta Sans", sans-serif', maxWidth: '850px' }}>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #d4af37', paddingBottom: '12px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#854d0e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Nalog za uplatu (Uzorak)
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#854d0e' }}>
+                    GlowLink d.o.o. / Boris Teglaš PR
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
+                  
+                  {/* Left part of payment slip */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Uplatilac</label>
+                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', minHeight: '36px', fontWeight: '600' }}>
+                        Salon: {salon?.name || 'Moj Salon'}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Svrha uplate</label>
+                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', minHeight: '36px', fontWeight: '600' }}>
+                        Pretplata za salon - {salon?.name || 'GlowLink'} ({billingPeriod === 'monthly' ? 'Mesečni' : 'Godišnji'} paket)
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Primalac</label>
+                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', minHeight: '36px', fontWeight: '600' }}>
+                        Boris Teglaš PR, Beograd
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right part of payment slip */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '80px 60px 1fr', gap: '8px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '0.65rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Šifra plać.</label>
+                        <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '6px', borderRadius: '4px', textAlign: 'center', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                          289
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '0.65rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Valuta</label>
+                        <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '6px', borderRadius: '4px', textAlign: 'center', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                          RSD
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '0.65rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Iznos</label>
+                        <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '6px 12px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', color: '#b45309', textAlign: 'right' }}>
+                          {billingPeriod === 'monthly' ? '2.000,00' : '18.000,00'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Račun primaoca</label>
+                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                        265-0000001234567-89
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Poziv na broj (odobrenje)</label>
+                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', color: '#1e3a8a' }}>
+                        GL-{salon?.slug || 'salon'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom line: QR Code and instructions */}
+                <div style={{ display: 'flex', borderTop: '1px solid rgba(212,175,55,0.3)', paddingTop: '16px', marginTop: '8px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    
+                    {/* Simulated IPS QR Code SVG */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <svg width="120" height="120" viewBox="0 0 150 150" style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #d4af37' }}>
+                        <rect x="0" y="0" width="30" height="30" fill="#000000"/>
+                        <rect x="5" y="5" width="20" height="20" fill="#ffffff"/>
+                        <rect x="10" y="10" width="10" height="10" fill="#000000"/>
+
+                        <rect x="120" y="0" width="30" height="30" fill="#000000"/>
+                        <rect x="125" y="5" width="20" height="20" fill="#ffffff"/>
+                        <rect x="130" y="10" width="10" height="10" fill="#000000"/>
+
+                        <rect x="0" y="120" width="30" height="30" fill="#000000"/>
+                        <rect x="5" y="125" width="20" height="20" fill="#ffffff"/>
+                        <rect x="10" y="130" width="10" height="10" fill="#000000"/>
+                        
+                        <rect x="40" y="5" width="10" height="10" fill="#000000"/>
+                        <rect x="60" y="15" width="10" height="10" fill="#000000"/>
+                        <rect x="80" y="0" width="15" height="15" fill="#000000"/>
+                        <rect x="100" y="10" width="10" height="10" fill="#000000"/>
+
+                        <rect x="40" y="40" width="20" height="20" fill="#000000"/>
+                        <rect x="80" y="50" width="10" height="10" fill="#000000"/>
+                        <rect x="110" y="40" width="20" height="10" fill="#000000"/>
+
+                        <rect x="5" y="50" width="10" height="15" fill="#000000"/>
+                        <rect x="20" y="80" width="15" height="10" fill="#000000"/>
+
+                        <rect x="50" y="80" width="30" height="30" fill="#000000"/>
+                        <rect x="55" y="85" width="20" height="20" fill="#ffffff"/>
+                        <rect x="62" y="92" width="6" height="6" fill="#cc0000"/>
+                        
+                        <rect x="90" y="90" width="10" height="10" fill="#000000"/>
+                        <rect x="110" y="110" width="20" height="15" fill="#000000"/>
+                        <rect x="130" y="70" width="15" height="20" fill="#000000"/>
+                      </svg>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#cc0000', letterSpacing: '0.5px' }}>
+                        IPS POKAŽI 📱
+                      </span>
+                    </div>
+
+                    <div style={{ maxWidth: '380px' }}>
+                      <h4 style={{ margin: 0, fontSize: '0.85rem', color: '#854d0e' }}>Brzo IPS plaćanje skeniranjem</h4>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '0.75rem', color: '#a16207', lineHeight: '1.4' }}>
+                        Otvorite aplikaciju Vaše banke, izaberite opciju &quot;IPS skeniraj&quot;, skenirajte ovaj kod i potvrdite transakciju. Sva polja i poziv na broj biće automatski popunjeni.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'inline-block', background: 'rgba(212,175,55,0.1)', border: '1px dashed #d4af37', padding: '6px 12px', borderRadius: '4px', fontSize: '0.7rem', color: '#854d0e', fontWeight: 'bold' }}>
+                      Nakon uplate, odobrenje traje do 24 sata.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

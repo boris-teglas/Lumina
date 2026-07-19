@@ -53,6 +53,8 @@ create table public.salons (
         "sat": {"open": "09:00", "close": "14:00", "is_working": true},
         "sun": {"open": "00:00", "close": "00:00", "is_working": false}
     }'::jsonb,
+    subscription_status text not null default 'trial',
+    subscription_expires_at timestamp with time zone default (now() + interval '14 days'),
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
