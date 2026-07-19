@@ -79,7 +79,17 @@ export default function Dashboard() {
   const [blockDuration, setBlockDuration] = useState('60')
   const [blockReason, setBlockReason] = useState('')
 
-  // HTML5 Canvas story configuration
+  // Manual booking modal states
+  const [showManualBookModal, setShowManualBookModal] = useState(false)
+  const [mbIsNewClient, setMbIsNewClient] = useState(true)
+  const [mbSelectedClientId, setMbSelectedClientId] = useState('')
+  const [mbClientName, setMbClientName] = useState('')
+  const [mbClientPhone, setMbClientPhone] = useState('')
+  const [mbClientEmail, setMbClientEmail] = useState('')
+  const [mbSelectedServiceId, setMbSelectedServiceId] = useState('')
+  const [mbDate, setMbDate] = useState('')
+  const [mbTime, setMbTime] = useState('10:00')
+  const [mbSilent, setMbSilent] = useState(false)
   const [storyBgPrimary, setStoryBgPrimary] = useState('#09090b')
   const [storyBgSecondary, setStoryBgSecondary] = useState('#1e1b4b')
   const [storyThemeColor, setStoryThemeColor] = useState('#ec4899')
@@ -644,6 +654,123 @@ export default function Dashboard() {
       console.error(err)
       alert('Greška pri blokiranju: ' + err.message)
     }
+  }
+
+  // Handle manual booking submission from owner
+  const handleManualBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!salon || !mbSelectedServiceId || !mbDate || !mbTime) {
+      alert('Molimo popunite sva obavezna polja.')
+      return
+    }
+
+    const selectedServiceObj = services.find(s => s.id === mbSelectedServiceId)
+    if (!selectedServiceObj) return
+
+    const startTime = new Date(`${mbDate}T${mbTime}:00`)
+    const endTime = new Date(startTime.getTime() + (selectedServiceObj.duration_minutes || 30) * 60000)
+
+    try {
+      let finalClientId = ''
+      let finalClientName = ''
+      let finalClientPhone = ''
+
+      if (demoMode) {
+        if (mbIsNewClient) {
+          finalClientId = 'mock-client-' + Date.now()
+          finalClientName = mbClientName
+          finalClientPhone = mbClientPhone
+          const newClientObj: Client = {
+            id: finalClientId,
+            full_name: mbClientName,
+            phone: mbClientPhone,
+            email: mbClientEmail || '',
+            notes: '',
+            total_bookings: 1,
+            is_blacklisted: false
+          }
+          setClients(prev => [...prev, newClientObj])
+        } else {
+          const existingClient = clients.find(c => c.id === mbSelectedClientId)
+          if (!existingClient) return
+          finalClientId = existingClient.id
+          finalClientName = existingClient.full_name
+          finalClientPhone = existingClient.phone
+          setClients(prev => prev.map(c => c.id === finalClientId ? { ...c, total_bookings: c.total_bookings + 1 } : c))
+        }
+
+        const newApp: Appointment = {
+          id: 'mock-app-' + Date.now(),
+          client_id: finalClientId,
+          client_name: finalClientName,
+          client_phone: finalClientPhone,
+          service_name: selectedServiceObj.name,
+          start_time: startTime.toISOString(),
+          price_charged: selectedServiceObj.price,
+          silent_appointment: mbSilent,
+          status: 'confirmed'
+        }
+
+        setAppointments(prev => [newApp, ...prev])
+        alert('Termin uspešno zakazan ručno (Demo mod)!')
+        setShowManualBookModal(false)
+        resetManualBookingForm()
+        return
+      }
+
+      // Live mode with Supabase
+      if (mbIsNewClient) {
+        const { data: newClient, error: clientErr } = await supabase
+          .from('clients')
+          .upsert(
+            {
+              salon_id: salon.id,
+              full_name: mbClientName,
+              phone: mbClientPhone.trim(),
+              email: mbClientEmail || null,
+            },
+            { onConflict: 'salon_id,phone' }
+          )
+          .select()
+          .single()
+
+        if (clientErr) throw clientErr
+        finalClientId = newClient.id
+      } else {
+        finalClientId = mbSelectedClientId
+      }
+
+      // Insert confirmed appointment
+      const { error: appErr } = await supabase.from('appointments').insert({
+        salon_id: salon.id,
+        service_id: mbSelectedServiceId,
+        client_id: finalClientId,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        status: 'confirmed',
+        price_charged: selectedServiceObj.price,
+        silent_appointment: mbSilent
+      })
+
+      if (appErr) throw appErr
+
+      alert('Termin je uspešno zakazan ručno!')
+      setShowManualBookModal(false)
+      resetManualBookingForm()
+      loadRealData(session.user.id)
+    } catch (err: any) {
+      console.error(err)
+      alert('Greška pri ručnom zakazivanju: ' + err.message)
+    }
+  }
+
+  const resetManualBookingForm = () => {
+    setMbClientName('')
+    setMbClientPhone('')
+    setMbClientEmail('')
+    setMbSelectedClientId('')
+    setMbSelectedServiceId('')
+    setMbSilent(false)
   }
 
   // Handle adding/updating service
@@ -1259,6 +1386,21 @@ export default function Dashboard() {
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
+                  className="btn btn-primary"
+                  style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0]
+                    setMbDate(today)
+                    if (services.length > 0) {
+                      setMbSelectedServiceId(services[0].id)
+                    }
+                    setShowManualBookModal(true)
+                  }}
+                >
+                  ➕ Brzo zakazivanje
+                </button>
+                <button
+                  type="button"
                   className="btn btn-secondary"
                   style={{ padding: '8px 14px', fontSize: '0.8rem', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}
                   onClick={() => {
@@ -1694,6 +1836,174 @@ export default function Dashboard() {
                     className="btn btn-primary"
                   >
                     Blokiraj
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MANUAL BOOKING OVERLAY MODAL */}
+        {showManualBookModal && (
+          <div className="auth-overlay" onClick={() => setShowManualBookModal(false)}>
+            <div className="glass-panel auth-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px', padding: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+                <h3 style={{ margin: 0 }}>➕ Ručno Zakazivanje</h3>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 8px', fontSize: '0.8rem', minWidth: 'auto' }}
+                  onClick={() => setShowManualBookModal(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleManualBookingSubmit}>
+                {/* Client Selection Type */}
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <input
+                      type="radio"
+                      name="clientType"
+                      checked={mbIsNewClient}
+                      onChange={() => setMbIsNewClient(true)}
+                    />
+                    Novi klijent
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <input
+                      type="radio"
+                      name="clientType"
+                      checked={!mbIsNewClient}
+                      onChange={() => setMbIsNewClient(false)}
+                    />
+                    Postojeći klijent
+                  </label>
+                </div>
+
+                {/* Client Fields */}
+                {mbIsNewClient ? (
+                  <>
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label className="form-label">Ime i prezime klijenta *</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        required
+                        placeholder="Npr. Milica Petrović"
+                        value={mbClientName}
+                        onChange={(e) => setMbClientName(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label className="form-label">Broj telefona *</label>
+                      <input
+                        type="tel"
+                        className="form-input"
+                        required
+                        placeholder="06xXXXXXXX"
+                        value={mbClientPhone}
+                        onChange={(e) => setMbClientPhone(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label className="form-label">Email adresa (opciono)</label>
+                      <input
+                        type="email"
+                        className="form-input"
+                        placeholder="milica@gmail.com"
+                        value={mbClientEmail}
+                        onChange={(e) => setMbClientEmail(e.target.value)}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="form-group" style={{ marginBottom: '16px' }}>
+                    <label className="form-label">Izaberite klijentkinju *</label>
+                    <select
+                      className="form-input"
+                      required
+                      value={mbSelectedClientId}
+                      onChange={(e) => setMbSelectedClientId(e.target.value)}
+                    >
+                      <option value="">-- Izaberite iz baze --</option>
+                      {clients.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.full_name} ({c.phone})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Service Field */}
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label">Usluga *</label>
+                  <select
+                    className="form-input"
+                    required
+                    value={mbSelectedServiceId}
+                    onChange={(e) => setMbSelectedServiceId(e.target.value)}
+                  >
+                    {services.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.price} RSD, {s.duration_minutes} min)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Date & Time Fields */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Datum *</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      required
+                      value={mbDate}
+                      onChange={(e) => setMbDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Vreme *</label>
+                    <input
+                      type="time"
+                      className="form-input"
+                      required
+                      value={mbTime}
+                      onChange={(e) => setMbTime(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Silent Appointment option */}
+                <div className="form-group" style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={mbSilent}
+                      onChange={(e) => setMbSilent(e.target.checked)}
+                    />
+                    Tihi termin 🤫 (Klijent ne želi ćaskanje)
+                  </label>
+                </div>
+
+                {/* Submit buttons */}
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowManualBookModal(false)}
+                  >
+                    Otkaži
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                  >
+                    Zakaži termin
                   </button>
                 </div>
               </form>
