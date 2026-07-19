@@ -10,6 +10,7 @@ interface Service {
   description: string
   duration_minutes: number
   price: number
+  category?: string
 }
 
 interface Salon {
@@ -51,6 +52,17 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
   const [clientPhone, setClientPhone] = useState('')
   const [clientEmail, setClientEmail] = useState('')
   const [silentAppointment, setSilentAppointment] = useState(false)
+
+  // Filter Categories State
+  const [selectedCategory, setSelectedCategory] = useState('Sve')
+
+  // Reviews State
+  const [reviews, setReviews] = useState<any[]>([])
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [revName, setRevName] = useState('')
+  const [revRating, setRevRating] = useState(5)
+  const [revComment, setRevComment] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
 
   // Time Slots
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
@@ -112,7 +124,7 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
 
         const { data: servicesData, error: servicesErr } = await supabase
           .from('services')
-          .select('id, name, description, duration_minutes, price')
+          .select('id, name, description, duration_minutes, price, category')
           .eq('salon_id', salonData.id)
           .eq('is_active', true)
           .order('price', { ascending: true })
@@ -121,6 +133,19 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
           console.error(servicesErr)
         } else {
           setServices(servicesData || [])
+        }
+
+        // Fetch reviews
+        try {
+          const { data: reviewsData } = await supabase
+            .from('reviews')
+            .select('*')
+            .eq('salon_id', salonData.id)
+            .order('created_at', { ascending: false })
+
+          setReviews(reviewsData || [])
+        } catch (revErr) {
+          console.warn('Reviews table might not be created yet:', revErr)
         }
       } catch (err) {
         console.error(err)
@@ -382,6 +407,49 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
     }
   }
 
+  // Handle Review Submission
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!salon || !revName || !revRating) {
+      alert('Molimo popunite sva obavezna polja.')
+      return
+    }
+
+    setSubmittingReview(true)
+    try {
+      const { error: revErr } = await supabase
+        .from('reviews')
+        .insert({
+          salon_id: salon.id,
+          client_name: revName,
+          rating: revRating,
+          comment: revComment
+        })
+
+      if (revErr) throw revErr
+
+      alert('Hvala Vam na recenziji! Vaš utisak je zabeležen. 🌸')
+      setShowReviewModal(false)
+      setRevName('')
+      setRevRating(5)
+      setRevComment('')
+      
+      // Reload reviews
+      const { data: reviewsData } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('salon_id', salon.id)
+        .order('created_at', { ascending: false })
+
+      setReviews(reviewsData || [])
+    } catch (err: any) {
+      console.error(err)
+      alert('Greška pri slanju recenzije: ' + err.message)
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
   // Loading Screen
   if (loading) {
     return (
@@ -507,6 +575,46 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
         </div>
         <h1 className="salon-name">{salon.name}</h1>
         <p className="salon-desc">{salon.description || 'Dobrodošli u naš online kalendar za zakazivanje termina.'}</p>
+        
+        {/* Reviews average display & Call to action */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
+          <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            ★ {reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : '5.0'}
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>
+              ({reviews.length} {reviews.length === 1 ? 'ocena' : 'ocena'})
+            </span>
+          </span>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '0.75rem', minWidth: 'auto', borderRadius: '15px' }}
+            onClick={() => setShowReviewModal(true)}
+          >
+            ✍️ Napišite recenziju
+          </button>
+        </div>
+
+        {/* Testimonials list */}
+        {reviews.length > 0 && (
+          <div style={{ marginTop: '20px', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
+              Utisci naših klijentkinja 🌸
+            </span>
+            <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', scrollSnapType: 'x mandatory' }}>
+              {reviews.slice(0, 5).map(rev => (
+                <div key={rev.id} style={{ minWidth: '260px', width: '260px', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', textAlign: 'left', flexShrink: 0, scrollSnapAlign: 'start' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <strong style={{ fontSize: '0.8rem', color: '#ffffff' }}>{rev.client_name}</strong>
+                    <span style={{ color: 'var(--accent-gold)', fontSize: '0.75rem' }}>{'★'.repeat(rev.rating)}</span>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, fontStyle: 'italic', lineHeight: '1.4', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                    "{rev.comment || 'Prezadovoljna!'}"
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Form */}
@@ -516,26 +624,62 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
           <h3 className="section-title">
             <span style={{ color: 'var(--primary)' }}>1.</span> Izaberite uslugu
           </h3>
+
+          {/* Categories Tab strip */}
+          {services.length > 0 && (
+            <div className="category-tabs" style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '20px', paddingBottom: '8px' }}>
+              {['Sve', ...Array.from(new Set(services.map(s => s.category || 'Ostalo')))].map(cat => (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`tab-btn ${selectedCategory === cat ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(cat)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    border: '1px solid var(--border-color)',
+                    background: selectedCategory === cat ? 'var(--primary)' : 'rgba(255,255,255,0.03)',
+                    color: selectedCategory === cat ? '#ffffff' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="services-list">
-            {services.map((srv) => (
-              <div
-                key={srv.id}
-                className={`service-item ${selectedService?.id === srv.id ? 'selected' : ''}`}
-                onClick={() => {
-                  setSelectedService(srv)
-                  setSelectedSlot('')
-                }}
-              >
-                <div className="service-details">
-                  <span className="service-name">{srv.name}</span>
-                  <span className="service-meta">Trajanje: {srv.duration_minutes} min</span>
-                  {srv.description && (
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{srv.description}</span>
-                  )}
+            {services
+              .filter(srv => selectedCategory === 'Sve' || (srv.category || 'Ostalo') === selectedCategory)
+              .map((srv) => (
+                <div
+                  key={srv.id}
+                  className={`service-item ${selectedService?.id === srv.id ? 'selected' : ''}`}
+                  onClick={() => {
+                    setSelectedService(srv)
+                    setSelectedSlot('')
+                  }}
+                >
+                  <div className="service-details">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="service-name">{srv.name}</span>
+                      <span style={{ fontSize: '0.7rem', opacity: 0.7, padding: '2px 8px', background: 'rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                        {srv.category || 'Ostalo'}
+                      </span>
+                    </div>
+                    <span className="service-meta">Trajanje: {srv.duration_minutes} min</span>
+                    {srv.description && (
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{srv.description}</span>
+                    )}
+                  </div>
+                  <div className="service-price">{srv.price.toLocaleString('sr-RS')} RSD</div>
                 </div>
-                <div className="service-price">{srv.price.toLocaleString('sr-RS')} RSD</div>
-              </div>
-            ))}
+              ))}
             {services.length === 0 && (
               <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Salon još uvek nije dodao usluge.</p>
             )}
@@ -754,6 +898,83 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
           )}
         </div>
       </form>
+
+      {/* REVIEW SUBMISSION OVERLAY MODAL */}
+      {showReviewModal && (
+        <div className="auth-overlay" onClick={() => setShowReviewModal(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, padding: '16px' }}>
+          <div className="glass-panel section-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px', width: '100%', padding: '32px', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+              <h3 style={{ margin: 0 }}>✍️ Napišite Recenziju</h3>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ padding: '4px 8px', fontSize: '0.8rem', minWidth: 'auto' }}
+                onClick={() => setShowReviewModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleReviewSubmit}>
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label className="form-label">Vaše ime *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  required
+                  placeholder="Npr. Milica"
+                  value={revName}
+                  onChange={(e) => setRevName(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label className="form-label">Ocena *</label>
+                <select
+                  className="form-input"
+                  value={revRating}
+                  onChange={(e) => setRevRating(Number(e.target.value))}
+                  style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}
+                >
+                  <option value="5">★★★★★ (5)</option>
+                  <option value="4">★★★★☆ (4)</option>
+                  <option value="3">★★★☆☆ (3)</option>
+                  <option value="2">★★☆☆☆ (2)</option>
+                  <option value="1">★☆☆☆☆ (1)</option>
+                </select>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '24px' }}>
+                <label className="form-label">Vaš utisak / Komentar</label>
+                <textarea
+                  className="form-input"
+                  style={{ height: '100px', resize: 'none', padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: '#ffffff', width: '100%' }}
+                  placeholder="Napišite šta Vam se najviše dopalo..."
+                  value={revComment}
+                  onChange={(e) => setRevComment(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowReviewModal(false)}
+                >
+                  Otkaži
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={submittingReview}
+                >
+                  {submittingReview ? 'Slanje...' : 'Pošalji'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

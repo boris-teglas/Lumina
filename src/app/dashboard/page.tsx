@@ -10,6 +10,7 @@ interface Service {
   price: number
   duration_minutes?: number
   description?: string
+  category?: string
   is_active?: boolean
 }
 
@@ -35,6 +36,14 @@ interface Client {
   is_blacklisted: boolean
 }
 
+interface Review {
+  id: string
+  client_name: string
+  rating: number
+  comment: string
+  created_at: string
+}
+
 export default function Dashboard() {
   const supabase = createClient()
   
@@ -46,7 +55,7 @@ export default function Dashboard() {
   const [demoMode, setDemoMode] = useState(false)
 
   // Navigation
-  const [activeTab, setActiveTab] = useState<'stats' | 'calendar' | 'crm' | 'services' | 'story' | 'settings'>('stats')
+  const [activeTab, setActiveTab] = useState<'stats' | 'calendar' | 'crm' | 'services' | 'story' | 'settings' | 'reviews'>('stats')
 
   // Core Data State
   const [salon, setSalon] = useState<any>(null)
@@ -55,6 +64,7 @@ export default function Dashboard() {
   const [services, setServices] = useState<Service[]>([])
   const [blacklistPhones, setBlacklistPhones] = useState<string[]>([])
   const [waitlistCount, setWaitlistCount] = useState(0)
+  const [reviews, setReviews] = useState<Review[]>([])
 
   // Selected entities for editing
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
@@ -65,6 +75,7 @@ export default function Dashboard() {
   const [newServicePrice, setNewServicePrice] = useState('')
   const [newServiceDuration, setNewServiceDuration] = useState('30')
   const [newServiceDesc, setNewServiceDesc] = useState('')
+  const [newServiceCategory, setNewServiceCategory] = useState('Nokti')
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
 
   // Calendar states
@@ -107,10 +118,10 @@ export default function Dashboard() {
     })
     
     setServices([
-      { id: 's1', name: 'Izlivanje noktiju', price: 2500 },
-      { id: 's2', name: 'Korekcija noktiju', price: 1800 },
-      { id: 's3', name: 'Gel lak', price: 1200 },
-      { id: 's4', name: 'Svilene trepavice', price: 3000 }
+      { id: 's1', name: 'Izlivanje noktiju', price: 2500, category: 'Nokti' },
+      { id: 's2', name: 'Korekcija noktiju', price: 1800, category: 'Nokti' },
+      { id: 's3', name: 'Gel lak', price: 1200, category: 'Nokti' },
+      { id: 's4', name: 'Svilene trepavice', price: 3000, category: 'Trepavice' }
     ])
 
     setAppointments([
@@ -181,6 +192,11 @@ export default function Dashboard() {
 
     setBlacklistPhones(['066333444'])
     setWaitlistCount(2)
+    setReviews([
+      { id: 'r1', client_name: 'Milica P.', rating: 5, comment: 'Nokti su uvek savršeni i traju nedeljama!', created_at: new Date().toISOString() },
+      { id: 'r2', client_name: 'Jovana L.', rating: 5, comment: 'Preporučujem tihe termine, divno iskustvo opuštanja.', created_at: new Date().toISOString() },
+      { id: 'r3', client_name: 'Ana M.', rating: 4, comment: 'Lepa atmosfera i super usluga.', created_at: new Date().toISOString() }
+    ])
   }
 
   // Handle Authentication status check
@@ -294,6 +310,18 @@ export default function Dashboard() {
 
       setWaitlistCount(count || 0)
 
+      // 7. Fetch reviews
+      try {
+        const { data: reviewsData } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('salon_id', salonData.id)
+          .order('created_at', { ascending: false })
+
+        setReviews(reviewsData || [])
+      } catch (err) {
+        console.warn('Reviews table might not be created yet:', err)
+      }
     } catch (e) {
       console.error(e)
     }
@@ -789,7 +817,8 @@ export default function Dashboard() {
           name: newServiceName,
           price: priceNum,
           duration_minutes: durationNum,
-          description: newServiceDesc
+          description: newServiceDesc,
+          category: newServiceCategory
         } : s))
         alert('Usluga izmenjena (Demo)!')
       } else {
@@ -800,6 +829,7 @@ export default function Dashboard() {
           price: priceNum,
           duration_minutes: durationNum,
           description: newServiceDesc,
+          category: newServiceCategory,
           is_active: true
         }
         setServices(prev => [...prev, newSrv])
@@ -812,6 +842,7 @@ export default function Dashboard() {
       setNewServicePrice('')
       setNewServiceDuration('30')
       setNewServiceDesc('')
+      setNewServiceCategory('Nokti')
       return
     }
 
@@ -824,7 +855,8 @@ export default function Dashboard() {
             name: newServiceName,
             price: priceNum,
             duration_minutes: durationNum,
-            description: newServiceDesc
+            description: newServiceDesc,
+            category: newServiceCategory
           })
           .eq('id', editingServiceId)
 
@@ -840,6 +872,7 @@ export default function Dashboard() {
             price: priceNum,
             duration_minutes: durationNum,
             description: newServiceDesc,
+            category: newServiceCategory,
             is_active: true
           })
 
@@ -852,6 +885,7 @@ export default function Dashboard() {
       setNewServicePrice('')
       setNewServiceDuration('30')
       setNewServiceDesc('')
+      setNewServiceCategory('Nokti')
       loadRealData(session.user.id)
     } catch (err: any) {
       console.error(err)
@@ -1075,6 +1109,27 @@ export default function Dashboard() {
     link.click()
   }
 
+  // Open prefilled WhatsApp template helper
+  const openWhatsAppMessage = (app: Appointment, type: 'confirm' | 'remind') => {
+    const dateFormatted = new Date(app.start_time).toLocaleDateString('sr-RS', { weekday: 'long', day: 'numeric', month: 'long' })
+    const timeFormatted = new Date(app.start_time).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })
+    
+    let text = ''
+    if (type === 'confirm') {
+      text = `Zdravo ${app.client_name}, potvrđujem Vaš zakazani termin za uslugu "${app.service_name}" u ${timeFormatted}h (${dateFormatted}) u salonu "${salon?.name || 'GlowLink'}" 🌸`
+    } else {
+      text = `Zdravo ${app.client_name}, samo Vas podsećam na zakazani termin za uslugu "${app.service_name}" sutra u ${timeFormatted}h (${dateFormatted}) u salonu "${salon?.name || 'GlowLink'}" 🌸`
+    }
+
+    let phone = app.client_phone.trim().replace(/\D/g, '') // remove non-digits
+    if (phone.startsWith('0')) {
+      phone = '381' + phone.substring(1)
+    }
+
+    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
+    window.open(waUrl, '_blank')
+  }
+
   // Dashboard Stats Calculations
   const completedApps = appointments.filter(a => a.status === 'completed')
   const monthlyEarnings = completedApps.reduce((acc, curr) => acc + curr.price_charged, 0)
@@ -1245,6 +1300,12 @@ export default function Dashboard() {
             onClick={() => setActiveTab('services')}
           >
             💇‍♀️ Upravljanje Uslugama
+          </li>
+          <li
+            className={`nav-item ${activeTab === 'reviews' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reviews')}
+          >
+            ⭐ Ocene & Utisci
           </li>
           <li
             className={`nav-item ${activeTab === 'story' ? 'active' : ''}`}
@@ -1758,6 +1819,33 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
+
+              {/* WhatsApp Quick Actions (Only if not blocked time) */}
+              {!selectedAppDetails.client_name.startsWith('Blokirano:') && (
+                <div style={{ background: 'rgba(37, 211, 102, 0.05)', border: '1px solid rgba(37, 211, 102, 0.15)', borderRadius: 'var(--radius-md)', padding: '12px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#25d366', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    💬 Brza WhatsApp Obaveštenja
+                  </span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <button
+                      type="button"
+                      className="btn"
+                      style={{ padding: '8px', fontSize: '0.75rem', background: '#25d366', color: '#ffffff', borderColor: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                      onClick={() => openWhatsAppMessage(selectedAppDetails, 'confirm')}
+                    >
+                      Potvrdi termin
+                    </button>
+                    <button
+                      type="button"
+                      className="btn"
+                      style={{ padding: '8px', fontSize: '0.75rem', background: 'transparent', color: '#25d366', borderColor: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                      onClick={() => openWhatsAppMessage(selectedAppDetails, 'remind')}
+                    >
+                      Pošalji podsetnik
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
                 {selectedAppDetails.status === 'pending' && (
@@ -2278,6 +2366,7 @@ export default function Dashboard() {
                     setNewServicePrice('')
                     setNewServiceDuration('30')
                     setNewServiceDesc('')
+                    setNewServiceCategory('Nokti')
                   }}
                 >
                   + Nova usluga
@@ -2288,6 +2377,7 @@ export default function Dashboard() {
                 <thead>
                   <tr>
                     <th>Naziv usluge</th>
+                    <th>Kategorija</th>
                     <th>Trajanje</th>
                     <th>Cena</th>
                     <th>Status</th>
@@ -2301,6 +2391,11 @@ export default function Dashboard() {
                         <strong>{srv.name}</strong> <br />
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                           {srv.description || 'Nema opisa.'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge badge-info" style={{ textTransform: 'capitalize' }}>
+                          {srv.category || 'Ostalo'}
                         </span>
                       </td>
                       <td>{srv.duration_minutes || 30} min</td>
@@ -2322,6 +2417,7 @@ export default function Dashboard() {
                               setNewServicePrice(srv.price.toString())
                               setNewServiceDuration((srv.duration_minutes || 30).toString())
                               setNewServiceDesc(srv.description || '')
+                              setNewServiceCategory(srv.category || 'Nokti')
                             }}
                           >
                             Izmeni
@@ -2340,7 +2436,7 @@ export default function Dashboard() {
                   ))}
                   {services.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                      <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                         Nema definisanih usluga.
                       </td>
                     </tr>
@@ -2367,6 +2463,24 @@ export default function Dashboard() {
                     value={newServiceName}
                     onChange={(e) => setNewServiceName(e.target.value)}
                   />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Kategorija Usluge</label>
+                  <select
+                    className="form-input"
+                    value={newServiceCategory}
+                    onChange={(e) => setNewServiceCategory(e.target.value)}
+                  >
+                    <option value="Nokti">Nokti 💅</option>
+                    <option value="Šminka">Šminka 💄</option>
+                    <option value="Trepavice i Obrve">Trepavice i Obrve 👁️</option>
+                    <option value="Nega lica">Nega lica 💆‍♀️</option>
+                    <option value="Frizura">Frizura 💇‍♀️</option>
+                    <option value="Depilacija">Depilacija ⚡</option>
+                    <option value="Masaža">Masaža 🕯️</option>
+                    <option value="Ostalo">Ostalo ✨</option>
+                  </select>
                 </div>
 
                 <div className="form-group">
@@ -2422,6 +2536,7 @@ export default function Dashboard() {
                         setNewServicePrice('')
                         setNewServiceDuration('30')
                         setNewServiceDesc('')
+                        setNewServiceCategory('Nokti')
                       }}
                     >
                       Otkaži
@@ -2429,6 +2544,85 @@ export default function Dashboard() {
                   )}
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: REVIEWS MANAGER */}
+        {activeTab === 'reviews' && (
+          <div className="glass-panel panel-card animate-fade-in" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h3 style={{ margin: 0 }}>Ocene i Utisci Klijenata</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px', marginBottom: 0 }}>
+                  Pregledajte povratne informacije posetilaca Vašeg salona
+                </p>
+              </div>
+              <div className="glass-panel" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.25rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>
+                  ★ {reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : '5.0'}
+                </span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  ({reviews.length} recenzija)
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {reviews.map((rev) => (
+                <div key={rev.id} style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <strong style={{ fontSize: '0.95rem' }}>{rev.client_name}</strong>
+                      <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                        {'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        {new Date(rev.created_at).toLocaleDateString('sr-RS')}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0, fontStyle: 'italic', lineHeight: '1.4' }}>
+                      "{rev.comment || 'Bez komentara.'}"
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 10px', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)', minWidth: 'auto' }}
+                    onClick={async () => {
+                      if (!confirm('Da li ste sigurni da želite da obrišete ovu recenziju?')) return
+                      
+                      try {
+                        if (demoMode) {
+                          setReviews(prev => prev.filter(r => r.id !== rev.id))
+                          alert('Recenzija obrisana (Demo)!')
+                          return
+                        }
+
+                        const { error } = await supabase
+                          .from('reviews')
+                          .delete()
+                          .eq('id', rev.id)
+
+                        if (error) throw error
+                        alert('Recenzija obrisana!')
+                        loadRealData(session?.user?.id)
+                      } catch (err: any) {
+                        console.error(err)
+                        alert('Greška pri brisanju recenzije: ' + err.message)
+                      }
+                    }}
+                  >
+                    Obriši
+                  </button>
+                </div>
+              ))}
+
+              {reviews.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
+                  Još uvek nema povratnih informacija klijenata. 🌸
+                </div>
+              )}
             </div>
           </div>
         )}

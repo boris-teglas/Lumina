@@ -78,6 +78,7 @@ create table public.services (
     duration_minutes integer not null default 30,
     price numeric not null,
     image_url text,
+    category text not null default 'Usluge',
     is_active boolean default true not null,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -293,3 +294,33 @@ create or replace trigger on_appointment_completed
     for each row
     when (old.status <> 'completed' and new.status = 'completed')
     execute procedure public.manage_completed_appointment();
+
+-- 9. REVIEWS Table
+create table public.reviews (
+    id uuid default gen_random_uuid() primary key,
+    salon_id uuid references public.salons(id) on delete cascade not null,
+    client_name text not null,
+    rating integer not null check (rating >= 1 and rating <= 5),
+    comment text,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS
+alter table public.reviews enable row level security;
+
+-- Public can read reviews
+create policy "Reviews are viewable by everyone" on public.reviews
+    for select using (true);
+
+-- Anyone can submit reviews
+create policy "Anyone can insert reviews" on public.reviews
+    for insert with check (true);
+
+-- Owners can delete spam reviews
+create policy "Owners can delete reviews" on public.reviews
+    for delete using (
+        exists (
+            select 1 from public.salons
+            where salons.id = reviews.salon_id and salons.owner_id = auth.uid()
+        )
+    );
