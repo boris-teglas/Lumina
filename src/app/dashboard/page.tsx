@@ -72,6 +72,13 @@ export default function Dashboard() {
   const [selectedAppDetails, setSelectedAppDetails] = useState<Appointment | null>(null)
   const [settingsSaving, setSettingsSaving] = useState(false)
 
+  // Block time modal states
+  const [showBlockModal, setShowBlockModal] = useState(false)
+  const [blockDate, setBlockDate] = useState('')
+  const [blockTime, setBlockTime] = useState('12:00')
+  const [blockDuration, setBlockDuration] = useState('60')
+  const [blockReason, setBlockReason] = useState('')
+
   // HTML5 Canvas story configuration
   const [storyBgPrimary, setStoryBgPrimary] = useState('#09090b')
   const [storyBgSecondary, setStoryBgSecondary] = useState('#1e1b4b')
@@ -496,6 +503,78 @@ export default function Dashboard() {
       arr.push({ dayName, dateStr, label, isToday: i === 0 })
     }
     return arr
+  }
+
+  // Handle blocking a specific time range in the calendar
+  const handleBlockTimeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!salon) return
+    if (services.length === 0 && !demoMode) {
+      alert('Morate imati bar jednu kreiranu uslugu u cenovniku da biste blokirali vreme.')
+      return
+    }
+
+    const serviceId = services[0]?.id || 'demo-service-id'
+    const startTime = new Date(`${blockDate}T${blockTime}:00`)
+    const endTime = new Date(startTime.getTime() + Number(blockDuration) * 60000)
+    const blockLabel = blockReason ? `Blokirano: ${blockReason}` : 'Blokirano vreme'
+
+    try {
+      if (demoMode) {
+        const newApp: Appointment = {
+          id: 'mock-block-' + Date.now(),
+          client_id: 'mock-block-client',
+          client_name: blockLabel,
+          client_phone: '000000',
+          service_name: 'Blokirano vreme',
+          start_time: startTime.toISOString(),
+          price_charged: 0,
+          silent_appointment: false,
+          status: 'confirmed'
+        }
+        setAppointments(prev => [newApp, ...prev])
+        alert('Vreme uspešno blokirano (Demo mod)!')
+        setShowBlockModal(false)
+        setBlockReason('')
+        return
+      }
+
+      // Create a unique client for this block so we can store the reason in full_name
+      const { data: blockClient, error: clientErr } = await supabase
+        .from('clients')
+        .insert({
+          salon_id: salon.id,
+          full_name: blockLabel,
+          phone: '000000-' + Date.now(), // Unique phone to avoid unique key constraints
+          notes: 'Služi za blokiranje kalendara.'
+        })
+        .select()
+        .single()
+
+      if (clientErr) throw clientErr
+
+      // Insert blocked appointment
+      const { error: appErr } = await supabase.from('appointments').insert({
+        salon_id: salon.id,
+        service_id: serviceId,
+        client_id: blockClient.id,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        status: 'confirmed',
+        price_charged: 0,
+        silent_appointment: false
+      })
+
+      if (appErr) throw appErr
+
+      alert('Vreme je uspešno blokirano u kalendaru!')
+      setShowBlockModal(false)
+      setBlockReason('')
+      loadRealData(session.user.id)
+    } catch (err: any) {
+      console.error(err)
+      alert('Greška pri blokiranju: ' + err.message)
+    }
   }
 
   // Handle adding/updating service
@@ -1076,7 +1155,19 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 14px', fontSize: '0.8rem', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0]
+                    setBlockDate(today)
+                    setShowBlockModal(true)
+                  }}
+                >
+                  🔒 Blokiraj vreme
+                </button>
                 <button
                   type="button"
                   className={`btn ${calendarViewMode === 'weekly' ? 'btn-primary' : 'btn-secondary'}`}
@@ -1239,6 +1330,30 @@ export default function Dashboard() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                             {dayApps.map(app => {
                               const timeStr = new Date(app.start_time).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })
+                              const isBlocked = app.client_name.startsWith('Blokirano:') || app.client_name === 'Blokirano Vreme'
+                              
+                              if (isBlocked) {
+                                const reason = app.client_name.replace('Blokirano:', '').trim() || 'Lične obaveze'
+                                return (
+                                  <div
+                                    key={app.id}
+                                    className="calendar-appt-card blocked"
+                                    onClick={() => setSelectedAppDetails(app)}
+                                  >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                                      <span>{timeStr}h</span>
+                                      <span>🔒</span>
+                                    </div>
+                                    <div style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontWeight: '600' }}>
+                                      Blokirano
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                      {reason}
+                                    </div>
+                                  </div>
+                                )
+                              }
+
                               return (
                                 <div
                                   key={app.id}
@@ -1394,6 +1509,93 @@ export default function Dashboard() {
                   Zatvori
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* BLOCK TIME OVERLAY MODAL */}
+        {showBlockModal && (
+          <div className="auth-overlay" onClick={() => setShowBlockModal(false)}>
+            <div className="glass-panel auth-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px', padding: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+                <h3 style={{ margin: 0 }}>🔒 Blokiraj Vreme</h3>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 8px', fontSize: '0.8rem', minWidth: 'auto' }}
+                  onClick={() => setShowBlockModal(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleBlockTimeSubmit}>
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label className="form-label">Datum</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    required
+                    value={blockDate}
+                    onChange={(e) => setBlockDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label className="form-label">Početno vreme</label>
+                  <input
+                    type="time"
+                    className="form-input"
+                    required
+                    value={blockTime}
+                    onChange={(e) => setBlockTime(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label className="form-label">Trajanje blokade</label>
+                  <select
+                    className="form-input"
+                    value={blockDuration}
+                    onChange={(e) => setBlockDuration(e.target.value)}
+                  >
+                    <option value="30">30 minuta</option>
+                    <option value="60">1 sat (60 min)</option>
+                    <option value="90">1.5 sat (90 min)</option>
+                    <option value="120">2 sata (120 min)</option>
+                    <option value="180">3 sata (180 min)</option>
+                    <option value="240">4 sata (240 min)</option>
+                    <option value="480">Ceo radni dan (8 sati)</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '24px' }}>
+                  <label className="form-label">Razlog / Beleška (opciono)</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Npr. Zubar, Privatne obaveze, Ručak"
+                    value={blockReason}
+                    onChange={(e) => setBlockReason(e.target.value)}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowBlockModal(false)}
+                  >
+                    Otkaži
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                  >
+                    Blokiraj
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
