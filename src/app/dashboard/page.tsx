@@ -896,102 +896,171 @@ export default function Dashboard() {
     canvas.width = 1080
     canvas.height = 1920
 
-    // Draw Background Gradient
+    // 1. Draw Background Gradient
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
     gradient.addColorStop(0, storyBgPrimary)
     gradient.addColorStop(1, storyBgSecondary)
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // Draw Sleek Accent Circles / Glow effects
-    ctx.fillStyle = storyThemeColor
-    ctx.globalAlpha = 0.15
+    // 2. Draw Sleek Ambient Glow Circles (Glassmorphic ambient background)
+    // Top-Right Radial Glow
+    const glow1 = ctx.createRadialGradient(canvas.width, 0, 50, canvas.width, 0, 600)
+    glow1.addColorStop(0, storyThemeColor)
+    glow1.addColorStop(1, 'transparent')
+    ctx.fillStyle = glow1
+    ctx.globalAlpha = 0.35
     ctx.beginPath()
-    ctx.arc(canvas.width, 0, 400, 0, Math.PI * 2)
+    ctx.arc(canvas.width, 0, 600, 0, Math.PI * 2)
     ctx.fill()
+
+    // Bottom-Left Radial Glow
+    const glow2 = ctx.createRadialGradient(0, canvas.height, 50, 0, canvas.height, 700)
+    glow2.addColorStop(0, storyThemeColor)
+    glow2.addColorStop(1, 'transparent')
+    ctx.fillStyle = glow2
+    ctx.globalAlpha = 0.25
     ctx.beginPath()
-    ctx.arc(0, canvas.height, 500, 0, Math.PI * 2)
+    ctx.arc(0, canvas.height, 700, 0, Math.PI * 2)
     ctx.fill()
+
     ctx.globalAlpha = 1.0
 
-    // Draw Title (Salon Name)
+    // 3. Draw Title (Salon Name)
     ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 50px Outfit'
+    ctx.font = 'bold 54px Outfit, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText((salon?.name || 'MOJ SALON').toUpperCase(), canvas.width / 2, 250)
+    ctx.fillText((salon?.name || 'MOJ SALON').toUpperCase(), canvas.width / 2, 230)
+
+    // Sparkle decoration next to title
+    ctx.fillStyle = storyThemeColor
+    ctx.font = '40px Outfit, sans-serif'
+    const titleWidth = ctx.measureText((salon?.name || 'MOJ SALON').toUpperCase()).width
+    ctx.fillText('✦', canvas.width / 2 - (titleWidth / 2) - 40, 220)
+    ctx.fillText('✦', canvas.width / 2 + (titleWidth / 2) + 40, 220)
 
     // Draw Subtitle / Offer
-    ctx.fillStyle = storyThemeColor
-    ctx.font = '500 40px Plus Jakarta Sans'
-    ctx.fillText('SLOBODNI TERMINI OVE NEDELJE', canvas.width / 2, 330)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)'
+    ctx.font = 'bold 36px Plus Jakarta Sans, sans-serif'
+    ctx.fillText('SLOBODNI TERMINI OVE NEDELJE', canvas.width / 2, 310)
 
-    // Draw decorative border lines
+    // Draw decorative divider
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
     ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.moveTo(150, 400)
-    ctx.lineTo(canvas.width - 150, 400)
+    ctx.moveTo(150, 370)
+    ctx.lineTo(canvas.width - 150, 370)
     ctx.stroke()
 
-    // Draw Slots Text
-    ctx.fillStyle = '#ffffff'
-    ctx.font = '600 48px Outfit'
-    ctx.textAlign = 'center'
-    
-    const lines = storySlotsText.split('\n')
-    let startY = 600
-    
-    lines.forEach((line) => {
-      // If line contains a colon, split it to highlight the day!
-      if (line.includes(':')) {
-        const parts = line.split(':')
-        const day = parts[0].trim()
-        const times = parts[1].trim()
+    // Helper function to draw rounded rectangle cards
+    const drawCard = (x: number, y: number, w: number, h: number, r: number) => {
+      ctx.beginPath()
+      ctx.moveTo(x + r, y)
+      ctx.lineTo(x + w - r, y)
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+      ctx.lineTo(x + w, y + h - r)
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+      ctx.lineTo(x + r, y + h)
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+      ctx.lineTo(x, y + r)
+      ctx.quadraticCurveTo(x, y, x + r, y)
+      ctx.closePath()
+      
+      // Card glassmorphic fill
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
+      ctx.fill()
+      
+      // Card border
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
+      ctx.lineWidth = 2
+      ctx.stroke()
+    }
 
+    // 4. Draw Slots Text inside Glassmorphic Card Containers
+    const lines = storySlotsText.split('\n')
+    let startY = 440
+    const cardW = 840
+    const cardH = 140
+    const cardX = (canvas.width - cardW) / 2
+
+    lines.forEach((line) => {
+      if (!line.trim()) return
+
+      const colonIndex = line.indexOf(':')
+      if (colonIndex !== -1) {
+        const day = line.substring(0, colonIndex).trim().toUpperCase()
+        const times = line.substring(colonIndex + 1).trim()
+
+        // Draw card wrapper
+        drawCard(cardX, startY, cardW, cardH, 24)
+
+        // Draw Day Name (Left-aligned)
+        ctx.fillStyle = '#ffffff'
+        ctx.font = 'bold 44px Outfit, sans-serif'
+        ctx.textAlign = 'left'
+        ctx.fillText(day, cardX + 40, startY + 82)
+
+        // Draw Times List (Right-aligned)
         ctx.fillStyle = storyThemeColor
-        ctx.font = 'bold 52px Outfit'
-        ctx.fillText(day.toUpperCase(), canvas.width / 2, startY)
-        
-        ctx.fillStyle = '#f4f4f5'
-        ctx.font = '500 42px Plus Jakarta Sans'
-        ctx.fillText(times, canvas.width / 2, startY + 70)
-        startY += 190
+        ctx.font = '600 38px Plus Jakarta Sans, sans-serif'
+        ctx.textAlign = 'right'
+        ctx.fillText(times, cardX + cardW - 40, startY + 80)
+
+        startY += cardH + 24
       } else {
-        ctx.fillStyle = '#f4f4f5'
-        ctx.font = '500 45px Plus Jakarta Sans'
-        ctx.fillText(line, canvas.width / 2, startY)
-        startY += 110
+        // Fallback for custom announcements
+        drawCard(cardX, startY, cardW, 100, 20)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+        ctx.font = '500 36px Plus Jakarta Sans, sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText(line, canvas.width / 2, startY + 62)
+        
+        startY += 100 + 20
       }
     })
 
-    // Draw Call To Action box at bottom
-    const boxX = 150
-    const boxY = canvas.height - 350
-    const boxW = canvas.width - 300
-    const boxH = 180
-    const cornerRadius = 30
+    // 5. Draw Call To Action box styled like a real Instagram Link Sticker
+    const stickerW = 680
+    const stickerH = 100
+    const stickerX = (canvas.width - stickerW) / 2
+    const stickerY = canvas.height - 280
+    const stickerR = 50
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'
-    ctx.lineWidth = 3
-    
-    // Rounded rectangle
+    // Draw pill shape
     ctx.beginPath()
-    ctx.arc(boxX + cornerRadius, boxY + cornerRadius, cornerRadius, Math.PI, Math.PI * 1.5)
-    ctx.arc(boxX + boxW - cornerRadius, boxY + cornerRadius, cornerRadius, Math.PI * 1.5, 0)
-    ctx.arc(boxX + boxW - cornerRadius, boxY + boxH - cornerRadius, cornerRadius, 0, Math.PI * 0.5)
-    ctx.arc(boxX + cornerRadius, boxY + boxH - cornerRadius, cornerRadius, Math.PI * 0.5, Math.PI)
+    ctx.moveTo(stickerX + stickerR, stickerY)
+    ctx.lineTo(stickerX + stickerW - stickerR, stickerY)
+    ctx.quadraticCurveTo(stickerX + stickerW, stickerY, stickerX + stickerW, stickerY + stickerR)
+    ctx.lineTo(stickerX + stickerW, stickerY + stickerH - stickerR)
+    ctx.quadraticCurveTo(stickerX + stickerW, stickerY + stickerH, stickerX + stickerW - stickerR, stickerY + stickerH)
+    ctx.lineTo(stickerX + stickerR, stickerY + stickerH)
+    ctx.quadraticCurveTo(stickerX, stickerY + stickerH, stickerX, stickerY + stickerH - stickerR)
+    ctx.lineTo(stickerX, stickerY + stickerR)
+    ctx.quadraticCurveTo(stickerX, stickerY, stickerX + stickerR, stickerY)
     ctx.closePath()
-    ctx.fill()
-    ctx.stroke()
 
-    // CTA Text inside box
+    // Add shadow behind sticker to look realistic
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)'
+    ctx.shadowBlur = 18
+    ctx.shadowOffsetY = 6
+
     ctx.fillStyle = '#ffffff'
-    ctx.font = '600 40px Plus Jakarta Sans'
-    ctx.fillText('Klikni na link u biografiji za brzo zakazivanje', canvas.width / 2, boxY + 80)
+    ctx.fill()
+
+    // Draw Link text inside sticker
+    ctx.shadowColor = 'transparent' // Reset shadow
     ctx.fillStyle = storyThemeColor
-    ctx.font = 'bold 40px Outfit'
-    ctx.fillText(`glowlink.com/${salon?.slug || 'salon'}`, canvas.width / 2, boxY + 135)
+    ctx.font = 'bold 36px Plus Jakarta Sans, sans-serif'
+    ctx.textAlign = 'center'
+    
+    // Render text with link emoji
+    ctx.fillText(`🔗 glowlink.com/${salon?.slug || 'salon'}`, canvas.width / 2, stickerY + 62)
+
+    // Tap sticker sub-instruction
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+    ctx.font = '500 30px Plus Jakarta Sans, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('Tapnite stiker za zakazivanje', canvas.width / 2, stickerY + stickerH + 60)
 
   }, [activeTab, storyBgPrimary, storyBgSecondary, storyThemeColor, storySlotsText, salon])
 
