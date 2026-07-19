@@ -505,6 +505,75 @@ export default function Dashboard() {
     return arr
   }
 
+  // Calculate dynamic stats from appointments data
+  const getDynamicStats = () => {
+    if (appointments.length === 0) {
+      return {
+        popularServices: [],
+        silentPercentage: 0,
+        standardPercentage: 0,
+        mostPopularDay: 'Nema podataka',
+        totalConfirmedOrCompleted: 0,
+        totalEarnings: 0
+      }
+    }
+
+    let totalConfirmedOrCompleted = 0
+    let silentCount = 0
+    let totalEarnings = 0
+    const serviceCounts: Record<string, number> = {}
+    const dayNames = ['Nedelja', 'Ponedeljak', 'Utorak', 'Sreda', 'Četvrtak', 'Petak', 'Subota']
+    const dayCounts: Record<string, number> = {}
+    dayNames.forEach(d => { dayCounts[d] = 0 })
+
+    appointments.forEach(app => {
+      if (app.status === 'confirmed' || app.status === 'completed') {
+        totalConfirmedOrCompleted++
+        
+        const sName = app.service_name || 'Neznata usluga'
+        serviceCounts[sName] = (serviceCounts[sName] || 0) + 1
+        
+        if (app.silent_appointment) {
+          silentCount++
+        }
+
+        totalEarnings += app.price_charged || 0
+
+        const dateObj = new Date(app.start_time)
+        const dayName = dayNames[dateObj.getDay()]
+        dayCounts[dayName] = (dayCounts[dayName] || 0) + 1
+      }
+    })
+
+    const popularServices = Object.entries(serviceCounts)
+      .map(([name, count]) => {
+        const percentage = totalConfirmedOrCompleted > 0 ? Math.round((count / totalConfirmedOrCompleted) * 100) : 0
+        return { name, count, percentage }
+      })
+      .sort((a, b) => b.count - a.count)
+
+    const silentPercentage = totalConfirmedOrCompleted > 0 ? Math.round((silentCount / totalConfirmedOrCompleted) * 100) : 0
+    const standardPercentage = 100 - silentPercentage
+
+    let mostPopularDay = 'Nema podataka'
+    let maxDayCount = 0
+    Object.entries(dayCounts).forEach(([day, count]) => {
+      if (count > maxDayCount) {
+        maxDayCount = count
+        mostPopularDay = day
+      }
+    })
+
+    return {
+      popularServices,
+      silentPercentage,
+      standardPercentage,
+      mostPopularDay,
+      totalConfirmedOrCompleted,
+      totalEarnings
+    }
+  }
+
   // Handle blocking a specific time range in the calendar
   const handleBlockTimeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -1053,94 +1122,126 @@ export default function Dashboard() {
         {/* TAB 1: STATISTICS */}
         {activeTab === 'stats' && (
           <div className="animate-fade-in">
-            {/* Stats Row */}
-            <div className="stats-grid">
-              <div className="glass-panel stat-card">
-                <div className="stat-header">
-                  <span className="stat-title">Zarada ovog meseca</span>
-                  <span className="stat-trend up">↑ 14%</span>
-                </div>
-                <div className="stat-value">{monthlyEarnings} RSD</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>u odnosu na prošli mesec</div>
-              </div>
-
-              <div className="glass-panel stat-card">
-                <div className="stat-header">
-                  <span className="stat-title">Završeni Termini</span>
-                  <span className="stat-trend up">↑ 8%</span>
-                </div>
-                <div className="stat-value">{completedApps.length}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>odrađenih poseta</div>
-              </div>
-
-              <div className="glass-panel stat-card">
-                <div className="stat-header">
-                  <span className="stat-title">Ukupno Klijenata</span>
-                  <span className="stat-trend up">↑ 5%</span>
-                </div>
-                <div className="stat-value">{totalClientStamps}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>registrovana u bazi</div>
-              </div>
-            </div>
-
-            {/* Popular Services & Waitlist alert panels */}
-            <div className="panel-grid">
-              <div className="glass-panel panel-card">
-                <h3>Popularnost Usluga</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '24px' }}>
-                  Raspodela profita po uslugama
-                </p>
-
-                {/* Simulated Chart Bars */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '6px' }}>
-                      <span>Izlivanje noktiju</span>
-                      <strong>65% profit</strong>
+            {(() => {
+              const stats = getDynamicStats()
+              
+              return (
+                <>
+                  {/* Stats Row */}
+                  <div className="stats-grid">
+                    <div className="glass-panel stat-card">
+                      <div className="stat-header">
+                        <span className="stat-title">Ukupan prihod (potvrđeno)</span>
+                        <span className="stat-trend up" style={{ color: 'var(--accent-gold)' }}>★ Premium</span>
+                      </div>
+                      <div className="stat-value">{(stats.totalEarnings || monthlyEarnings).toLocaleString('sr-RS')} RSD</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ukupan prihod od odrađenih poseta</div>
                     </div>
-                    <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: '65%', height: '100%', background: 'var(--primary)' }} />
+
+                    <div className="glass-panel stat-card">
+                      <div className="stat-header">
+                        <span className="stat-title">Aktivni Termini</span>
+                        <span className="stat-trend up">↑ 100%</span>
+                      </div>
+                      <div className="stat-value">{stats.totalConfirmedOrCompleted}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>potvrđenih ili završenih poseta</div>
+                    </div>
+
+                    <div className="glass-panel stat-card">
+                      <div className="stat-header">
+                        <span className="stat-title">Ukupno Klijenata</span>
+                        <span className="stat-trend up">↑ 5%</span>
+                      </div>
+                      <div className="stat-value">{clients.length}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>klijentkinja u bazi podataka</div>
                     </div>
                   </div>
 
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '6px' }}>
-                      <span>Svilene trepavice</span>
-                      <strong>20% profit</strong>
+                  {/* Popular Services & Customer Habits */}
+                  <div className="panel-grid">
+                    <div className="glass-panel panel-card">
+                      <h3>Popularnost Usluga</h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '24px' }}>
+                        Udeo različitih usluga u ukupnom broju zakazivanja
+                      </p>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                        {stats.popularServices.map((srv) => (
+                          <div key={srv.name}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '6px' }}>
+                              <span style={{ fontWeight: '600' }}>{srv.name}</span>
+                              <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                                <strong>{srv.count}</strong> {srv.count === 1 ? 'termin' : 'termina'} ({srv.percentage}%)
+                              </span>
+                            </div>
+                            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                              <div style={{ width: `${srv.percentage}%`, height: '100%', background: 'var(--primary)', borderRadius: '4px' }} />
+                            </div>
+                          </div>
+                        ))}
+                        {stats.popularServices.length === 0 && (
+                          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px 0' }}>
+                            Još uvek nema rezervacija za kreiranje statistike.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: '20%', height: '100%', background: 'var(--accent)' }} />
+
+                    {/* Customer Preferences & Busy Days */}
+                    <div className="glass-panel panel-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <div>
+                        <h3>Navike Klijentkinja</h3>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px' }}>
+                          Analiza preferencija i ponašanja posetilaca
+                        </p>
+
+                        {/* Silent Appointment preference */}
+                        <div style={{ marginBottom: '20px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px' }}>
+                            <span>Standardno ćaskanje vs Tihi termin 🤫</span>
+                          </div>
+                          <div style={{ width: '100%', height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '7px', overflow: 'hidden', display: 'flex' }}>
+                            <div
+                              style={{ width: `${stats.standardPercentage}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--accent))' }}
+                              title={`Standardno: ${stats.standardPercentage}%`}
+                            />
+                            <div
+                              style={{ width: `${stats.silentPercentage}%`, height: '100%', background: 'rgba(255,255,255,0.15)' }}
+                              title={`Tihi termin: ${stats.silentPercentage}%`}
+                            />
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginTop: '6px', color: 'var(--text-muted)' }}>
+                            <span>Standardno: {stats.standardPercentage}%</span>
+                            <span>Tihi termin 🤫: {stats.silentPercentage}%</span>
+                          </div>
+                        </div>
+
+                        {/* Most Popular Day info */}
+                        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '14px', marginTop: '16px' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                            🔥 Najtraženiji Dan U Nedelji
+                          </span>
+                          <h4 style={{ fontSize: '1.2rem', marginTop: '4px', marginBottom: '4px', color: 'var(--primary)' }}>
+                            {stats.mostPopularDay}
+                          </h4>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
+                            {stats.mostPopularDay !== 'Nema podataka' 
+                              ? `Tog dana klijentkinje najviše rezervišu termine. Razmislite o dodavanju dodatnih termina ili kraćih pauza kako biste maksimizovali prihod!` 
+                              : 'Podaci o danima će se učitati sa prvim zakazanim terminima.'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px', marginTop: 'auto' }}>
+                        <button type="button" className="btn btn-secondary" style={{ width: '100%' }} onClick={() => setActiveTab('crm')}>
+                          👥 Idi na Mini CRM klijente
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '6px' }}>
-                      <span>Gel lak</span>
-                      <strong>15% profit</strong>
-                    </div>
-                    <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: '15%', height: '100%', background: 'var(--accent-gold)' }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* CRM Tips */}
-              <div className="glass-panel panel-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <h3 style={{ color: 'var(--accent-gold)' }}>★ Loyalty Statistika</h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '8px', lineHeight: '1.5' }}>
-                    Ove nedelje je čak <strong>3 klijentkinje</strong> iskoristilo svoj besplatni 5. termin.
-                    Automatski rođendanski popusti su doneli <strong>15% više</strong> poseta u odnosu na prosek!
-                  </p>
-                </div>
-                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px', marginTop: '16px' }}>
-                  <button className="btn btn-secondary" style={{ width: '100%' }} onClick={() => setActiveTab('crm')}>
-                    Vidi klijente
-                  </button>
-                </div>
-              </div>
-            </div>
+                </>
+              )
+            })()}
           </div>
         )}
 
