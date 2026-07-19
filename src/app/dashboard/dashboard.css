@@ -302,10 +302,104 @@
   border: 1px solid transparent;
 }
 
-.alert-danger {
-  background: var(--danger-bg);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: var(--danger);
+/* Weekly calendar layout */
+.weekly-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.calendar-day-column {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.calendar-day-column.today {
+  background: rgba(236, 72, 153, 0.03);
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.calendar-day-header {
+  text-align: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 4px;
+}
+
+.calendar-day-name {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.calendar-day-date {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.calendar-appt-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendar-appt-card:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.calendar-appt-card.pending {
+  border-left-color: var(--warning);
+}
+
+.calendar-appt-card.completed {
+  border-left-color: var(--success);
+}
+
+.calendar-appt-card.cancelled {
+  border-left-color: var(--danger);
+  opacity: 0.5;
+}
+
+.calendar-appt-card.no_show {
+  border-left-color: #6b7280;
+  opacity: 0.6;
+}
+
+/* Working hours settings style */
+.working-hours-table {
+  width: 100%;
+  margin-top: 16px;
+  border-collapse: collapse;
+}
+
+.working-hours-table tr {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.working-hours-table td {
+  padding: 12px 8px;
+  font-size: 0.9rem;
 }
 
 /* Mobile Responsive */

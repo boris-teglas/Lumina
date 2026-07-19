@@ -67,6 +67,11 @@ export default function Dashboard() {
   const [newServiceDesc, setNewServiceDesc] = useState('')
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
 
+  // Calendar states
+  const [calendarViewMode, setCalendarViewMode] = useState<'list' | 'weekly'>('weekly')
+  const [selectedAppDetails, setSelectedAppDetails] = useState<Appointment | null>(null)
+  const [settingsSaving, setSettingsSaving] = useState(false)
+
   // HTML5 Canvas story configuration
   const [storyBgPrimary, setStoryBgPrimary] = useState('#09090b')
   const [storyBgSecondary, setStoryBgSecondary] = useState('#1e1b4b')
@@ -441,6 +446,56 @@ export default function Dashboard() {
     } catch (e) {
       console.error(e)
     }
+  }
+
+  // Handle saving salon settings (name, description, theme color, working hours)
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!salon) return
+    setSettingsSaving(true)
+
+    if (demoMode) {
+      alert('Podešavanja sačuvana u Demo modu!')
+      setSettingsSaving(false)
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('salons')
+        .update({
+          name: salon.name,
+          description: salon.description,
+          theme_color: salon.theme_color,
+          working_hours: salon.working_hours,
+        })
+        .eq('id', salon.id)
+
+      if (error) throw error
+      alert('Podešavanja su uspešno sačuvana!');
+      loadRealData(session.user.id)
+    } catch (err: any) {
+      console.error(err)
+      alert('Greška pri čuvanju podešavanja: ' + err.message)
+    } finally {
+      setSettingsSaving(false)
+    }
+  }
+
+  // Generate next 7 days starting from today for dashboard weekly view
+  const getNext7Days = () => {
+    const arr = []
+    const today = new Date()
+    const locale = 'sr-RS'
+    for (let i = 0; i < 7; i++) {
+      const d = new Date()
+      d.setDate(today.getDate() + i)
+      const dayName = d.toLocaleDateString(locale, { weekday: 'short' }).replace('.', '')
+      const dateStr = d.toISOString().split('T')[0]
+      const label = d.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+      arr.push({ dayName, dateStr, label, isToday: i === 0 })
+    }
+    return arr
   }
 
   // Handle adding/updating service
@@ -1012,108 +1067,334 @@ export default function Dashboard() {
 
         {/* TAB 2: CALENDAR & SCHEDULER */}
         {activeTab === 'calendar' && (
-          <div className="glass-panel panel-card animate-fade-in">
-            <div className="panel-header">
-              <h3>Pregled Zakazanih Termina</h3>
-              <span className="badge badge-warning">Ažurira se u realnom vremenu</span>
+          <div className="glass-panel panel-card animate-fade-in" style={{ padding: '24px' }}>
+            <div className="panel-header" style={{ marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h3 style={{ margin: 0 }}>Kalendar i Raspored</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px', marginBottom: 0 }}>
+                  Upravljajte rezervisanim terminima salona
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  className={`btn ${calendarViewMode === 'weekly' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+                  onClick={() => setCalendarViewMode('weekly')}
+                >
+                  📅 Nedeljni prikaz
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${calendarViewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+                  onClick={() => setCalendarViewMode('list')}
+                >
+                  📋 Lista termina
+                </button>
+              </div>
             </div>
 
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Vreme</th>
-                  <th>Klijent</th>
-                  <th>Usluga</th>
-                  <th>Tihi termin?</th>
-                  <th>Cena</th>
-                  <th>Status</th>
-                  <th>Akcije</th>
-                </tr>
-              </thead>
-              <tbody>
-                {appointments.map((app) => {
-                  const dateObj = new Date(app.start_time)
-                  const timeFormatted = dateObj.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })
-                  const dateFormatted = dateObj.toLocaleDateString('sr-RS', { day: 'numeric', month: 'short' })
-                  
-                  return (
-                    <tr key={app.id}>
-                      <td>
-                        <strong>{timeFormatted}h</strong> <br />
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{dateFormatted}</span>
-                      </td>
-                      <td>
-                        <strong>{app.client_name}</strong> <br />
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{app.client_phone}</span>
-                      </td>
-                      <td>{app.service_name}</td>
-                      <td>{app.silent_appointment ? '🤫 Tihi termin' : '💬 Standardno'}</td>
-                      <td>{app.price_charged} RSD</td>
-                      <td>
-                        <span className={`badge ${
-                          app.status === 'completed' ? 'badge-success' :
-                          app.status === 'confirmed' ? 'badge-info' :
-                          app.status === 'pending' ? 'badge-warning' :
-                          'badge-danger'
-                        }`}>
-                          {app.status === 'completed' ? 'Završen' :
-                           app.status === 'confirmed' ? 'Potvrđen' :
-                           app.status === 'pending' ? 'Čeka odobrenje' :
-                           app.status === 'no_show' ? 'No-Show' : 'Otkazan'}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {app.status === 'pending' && (
-                            <button
-                              className="btn btn-primary"
-                              style={{ padding: '6px 10px', fontSize: '0.75rem' }}
-                              onClick={() => updateAppointmentStatus(app.id, 'confirmed')}
-                            >
-                              Odobri
-                            </button>
-                          )}
-                          {app.status === 'confirmed' && (
-                            <button
-                              className="btn btn-primary"
-                              style={{ padding: '6px 10px', fontSize: '0.75rem', background: 'var(--success)' }}
-                              onClick={() => updateAppointmentStatus(app.id, 'completed')}
-                            >
-                              Završi
-                            </button>
-                          )}
-                          {app.status !== 'completed' && app.status !== 'cancelled' && app.status !== 'no_show' && (
-                            <>
-                              <button
-                                className="btn btn-secondary"
-                                style={{ padding: '6px 10px', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.2)' }}
-                                onClick={() => updateAppointmentStatus(app.id, 'no_show')}
-                              >
-                                No-Show
-                              </button>
-                              <button
-                                className="btn btn-secondary"
-                                style={{ padding: '6px 10px', fontSize: '0.75rem' }}
-                                onClick={() => updateAppointmentStatus(app.id, 'cancelled')}
-                              >
-                                Otkaži
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
+            {/* List View */}
+            {calendarViewMode === 'list' && (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Vreme</th>
+                      <th>Klijent</th>
+                      <th>Usluga</th>
+                      <th>Tihi termin?</th>
+                      <th>Cena</th>
+                      <th>Status</th>
+                      <th>Akcije</th>
                     </tr>
-                  )
-                })}
-                {appointments.length === 0 && (
-                  <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                      Nema zakazanih termina.
-                    </td>
-                  </tr>
+                  </thead>
+                  <tbody>
+                    {appointments.map((app) => {
+                      const dateObj = new Date(app.start_time)
+                      const timeFormatted = dateObj.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })
+                      const dateFormatted = dateObj.toLocaleDateString('sr-RS', { day: 'numeric', month: 'short' })
+                      
+                      return (
+                        <tr key={app.id}>
+                          <td>
+                            <strong>{timeFormatted}h</strong> <br />
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{dateFormatted}</span>
+                          </td>
+                          <td>
+                            <strong>{app.client_name}</strong> <br />
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{app.client_phone}</span>
+                          </td>
+                          <td>{app.service_name}</td>
+                          <td>{app.silent_appointment ? '🤫 Tihi termin' : '💬 Standardno'}</td>
+                          <td>{app.price_charged} RSD</td>
+                          <td>
+                            <span className={`badge ${
+                              app.status === 'completed' ? 'badge-success' :
+                              app.status === 'confirmed' ? 'badge-info' :
+                              app.status === 'pending' ? 'badge-warning' :
+                              'badge-danger'
+                            }`}>
+                              {app.status === 'completed' ? 'Završen' :
+                               app.status === 'confirmed' ? 'Potvrđen' :
+                               app.status === 'pending' ? 'Čeka odobrenje' :
+                               app.status === 'no_show' ? 'No-Show' : 'Otkazan'}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              {app.status === 'pending' && (
+                                <button
+                                  type="button"
+                                  className="btn btn-primary"
+                                  style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+                                  onClick={() => updateAppointmentStatus(app.id, 'confirmed')}
+                                >
+                                  Odobri
+                                </button>
+                              )}
+                              {app.status === 'confirmed' && (
+                                <button
+                                  type="button"
+                                  className="btn btn-primary"
+                                  style={{ padding: '6px 10px', fontSize: '0.75rem', background: 'var(--success)' }}
+                                  onClick={() => updateAppointmentStatus(app.id, 'completed')}
+                                >
+                                  Završi
+                                </button>
+                              )}
+                              {app.status !== 'completed' && app.status !== 'cancelled' && app.status !== 'no_show' && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    style={{ padding: '6px 10px', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.2)' }}
+                                    onClick={() => updateAppointmentStatus(app.id, 'no_show')}
+                                  >
+                                    No-Show
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+                                    onClick={() => updateAppointmentStatus(app.id, 'cancelled')}
+                                  >
+                                    Otkaži
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                    {appointments.length === 0 && (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                          Nema zakazanih termina.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Weekly Graphical Planner Grid */}
+            {calendarViewMode === 'weekly' && (
+              <div className="weekly-calendar-grid">
+                {(() => {
+                  const daysList = getNext7Days()
+                  const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+
+                  return daysList.map((d) => {
+                    // Check working status for day
+                    const dateObj = new Date(d.dateStr)
+                    const dayKey = DAY_KEYS[dateObj.getDay()]
+                    const workingInfo = salon?.working_hours?.[dayKey]
+                    const isWorking = workingInfo?.is_working ?? true
+
+                    // Filter appointments for this dateStr
+                    const dayApps = appointments.filter(app => {
+                      const appDate = new Date(app.start_time).toISOString().split('T')[0]
+                      return appDate === d.dateStr
+                    }).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+
+                    return (
+                      <div key={d.dateStr} className={`calendar-day-column ${d.isToday ? 'today' : ''}`}>
+                        <div className="calendar-day-header">
+                          <span className="calendar-day-name">{d.dayName}</span>
+                          <div className="calendar-day-date" style={{ color: d.isToday ? 'var(--primary)' : 'inherit' }}>
+                            {d.label}
+                          </div>
+                        </div>
+
+                        {!isWorking ? (
+                          <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                            Neradni dan 😴
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                            {dayApps.map(app => {
+                              const timeStr = new Date(app.start_time).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })
+                              return (
+                                <div
+                                  key={app.id}
+                                  className={`calendar-appt-card ${app.status}`}
+                                  onClick={() => setSelectedAppDetails(app)}
+                                >
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                                    <span>{timeStr}h</span>
+                                    <span style={{ fontSize: '0.65rem', textTransform: 'capitalize' }}>
+                                      {app.status === 'pending' ? '⏳' : app.status === 'confirmed' ? '✓' : '🏁'}
+                                    </span>
+                                  </div>
+                                  <div style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontWeight: '600' }}>
+                                    {app.client_name}
+                                  </div>
+                                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                    {app.service_name}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                            {dayApps.length === 0 && (
+                              <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                                Slobodno 🌸
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* APPOINTMENT DETAILS OVERLAY MODAL */}
+        {selectedAppDetails && (
+          <div className="auth-overlay" onClick={() => setSelectedAppDetails(null)}>
+            <div className="glass-panel auth-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px', padding: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+                <h3 style={{ margin: 0 }}>Detalji Rezervacije</h3>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 8px', fontSize: '0.8rem', minWidth: 'auto' }}
+                  onClick={() => setSelectedAppDetails(null)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '8px', fontSize: '0.9rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Klijent:</span>
+                  <strong>{selectedAppDetails.client_name}</strong>
+
+                  <span style={{ color: 'var(--text-muted)' }}>Telefon:</span>
+                  <a href={`tel:${selectedAppDetails.client_phone}`} style={{ color: 'var(--primary)', textDecoration: 'underline' }}>
+                    {selectedAppDetails.client_phone}
+                  </a>
+
+                  <span style={{ color: 'var(--text-muted)' }}>Datum:</span>
+                  <span>{new Date(selectedAppDetails.start_time).toLocaleDateString('sr-RS', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+
+                  <span style={{ color: 'var(--text-muted)' }}>Vreme:</span>
+                  <strong>{new Date(selectedAppDetails.start_time).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}h</strong>
+
+                  <span style={{ color: 'var(--text-muted)' }}>Usluga:</span>
+                  <strong>{selectedAppDetails.service_name}</strong>
+
+                  <span style={{ color: 'var(--text-muted)' }}>Cena:</span>
+                  <strong>{selectedAppDetails.price_charged} RSD</strong>
+
+                  <span style={{ color: 'var(--text-muted)' }}>Režim rada:</span>
+                  <span>{selectedAppDetails.silent_appointment ? '🤫 Tihi termin (bez ćaskanja)' : '💬 Standardni termin'}</span>
+
+                  <span style={{ color: 'var(--text-muted)' }}>Status:</span>
+                  <span className={`badge ${
+                    selectedAppDetails.status === 'completed' ? 'badge-success' :
+                    selectedAppDetails.status === 'confirmed' ? 'badge-info' :
+                    selectedAppDetails.status === 'pending' ? 'badge-warning' :
+                    'badge-danger'
+                  }`} style={{ justifySelf: 'start' }}>
+                    {selectedAppDetails.status === 'completed' ? 'Završen' :
+                     selectedAppDetails.status === 'confirmed' ? 'Potvrđen' :
+                     selectedAppDetails.status === 'pending' ? 'Čeka odobrenje' :
+                     selectedAppDetails.status === 'no_show' ? 'No-Show' : 'Otkazan'}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                {selectedAppDetails.status === 'pending' && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ padding: '8px 16px', fontSize: '0.8rem' }}
+                    onClick={() => {
+                      updateAppointmentStatus(selectedAppDetails.id, 'confirmed')
+                      setSelectedAppDetails(null)
+                    }}
+                  >
+                    Odobri termin
+                  </button>
                 )}
-              </tbody>
-            </table>
+                {selectedAppDetails.status === 'confirmed' && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ padding: '8px 16px', fontSize: '0.8rem', background: 'var(--success)' }}
+                    onClick={() => {
+                      updateAppointmentStatus(selectedAppDetails.id, 'completed')
+                      setSelectedAppDetails(null)
+                    }}
+                  >
+                    Označi kao završen
+                  </button>
+                )}
+                {selectedAppDetails.status !== 'completed' && selectedAppDetails.status !== 'cancelled' && selectedAppDetails.status !== 'no_show' && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ padding: '8px 16px', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.2)' }}
+                      onClick={() => {
+                        updateAppointmentStatus(selectedAppDetails.id, 'no_show')
+                        setSelectedAppDetails(null)
+                      }}
+                    >
+                      No-Show
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ padding: '8px 16px', fontSize: '0.8rem' }}
+                      onClick={() => {
+                        updateAppointmentStatus(selectedAppDetails.id, 'cancelled')
+                        setSelectedAppDetails(null)
+                      }}
+                    >
+                      Otkaži termin
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.8rem' }}
+                  onClick={() => setSelectedAppDetails(null)}
+                >
+                  Zatvori
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1471,18 +1752,19 @@ export default function Dashboard() {
         )}
 
         {activeTab === 'settings' && (
-          <div className="glass-panel panel-card animate-fade-in" style={{ maxWidth: '600px' }}>
+          <div className="glass-panel panel-card animate-fade-in" style={{ maxWidth: '650px' }}>
             <h3>Podešavanja Salona</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '24px' }}>
-              Uredite informacije koje klijenti vide na Vašoj stranici
+              Uredite informacije koje klijenti vide na Vašoj stranici i konfigurišite radno vreme
             </p>
 
-            <form onSubmit={(e) => { e.preventDefault(); alert('Podešavanja sačuvana!'); }}>
+            <form onSubmit={handleSaveSettings}>
               <div className="form-group">
                 <label className="form-label">Naziv Salona</label>
                 <input
                   type="text"
                   className="form-input"
+                  required
                   value={salon?.name || ''}
                   onChange={(e) => setSalon({ ...salon, name: e.target.value })}
                 />
@@ -1528,9 +1810,86 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary">
-                Sačuvaj podešavanja
-              </button>
+              {/* Working Hours configuration */}
+              <div className="form-group" style={{ marginTop: '28px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+                <label className="form-label" style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>Radno Vreme Salona</label>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '16px' }}>
+                  Označite dane kojima radite i podesite satnicu. Neradni dani biće zatvoreni za online rezervacije.
+                </p>
+                <table className="working-hours-table">
+                  <tbody>
+                    {[
+                      { key: 'mon', label: 'Ponedeljak' },
+                      { key: 'tue', label: 'Utorak' },
+                      { key: 'wed', label: 'Sreda' },
+                      { key: 'thu', label: 'Četvrtak' },
+                      { key: 'fri', label: 'Petak' },
+                      { key: 'sat', label: 'Subota' },
+                      { key: 'sun', label: 'Nedelja' }
+                    ].map((day) => {
+                      const hours = salon?.working_hours?.[day.key] || { open: '09:00', close: '17:00', is_working: false }
+                      return (
+                        <tr key={day.key}>
+                          <td style={{ width: '140px', border: 'none' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '600' }}>
+                              <input
+                                type="checkbox"
+                                style={{ cursor: 'pointer' }}
+                                checked={hours.is_working}
+                                onChange={() => {
+                                  const updated = { ...salon.working_hours }
+                                  if (!updated[day.key]) {
+                                    updated[day.key] = { open: '09:00', close: '17:00', is_working: true }
+                                  } else {
+                                    updated[day.key].is_working = !updated[day.key].is_working
+                                  }
+                                  setSalon({ ...salon, working_hours: updated })
+                                }}
+                              />
+                              {day.label}
+                            </label>
+                          </td>
+                          <td style={{ border: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: hours.is_working ? 1 : 0.45 }}>
+                              <input
+                                type="time"
+                                className="form-input"
+                                style={{ padding: '6px 10px', width: '100px', fontSize: '0.85rem' }}
+                                disabled={!hours.is_working}
+                                value={hours.open || '09:00'}
+                                onChange={(e) => {
+                                  const updated = { ...salon.working_hours }
+                                  updated[day.key].open = e.target.value
+                                  setSalon({ ...salon, working_hours: updated })
+                                }}
+                              />
+                              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>do</span>
+                              <input
+                                type="time"
+                                className="form-input"
+                                style={{ padding: '6px 10px', width: '100px', fontSize: '0.85rem' }}
+                                disabled={!hours.is_working}
+                                value={hours.close || '17:00'}
+                                onChange={(e) => {
+                                  const updated = { ...salon.working_hours }
+                                  updated[day.key].close = e.target.value
+                                  setSalon({ ...salon, working_hours: updated })
+                                }}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ marginTop: '24px' }}>
+                <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }} disabled={settingsSaving}>
+                  {settingsSaving ? 'Čuvanje...' : 'Sačuvaj podešavanja'}
+                </button>
+              </div>
             </form>
           </div>
         )}
