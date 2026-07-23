@@ -3177,7 +3177,6 @@ export default function Dashboard() {
                 </div>
               </>
             ) : (
-              /* Success message when subscription is active */
               <div className="glass-panel panel-card" style={{ padding: '40px 28px', textAlign: 'center', background: 'rgba(74, 222, 128, 0.02)', borderColor: 'rgba(74, 222, 128, 0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
                 <span style={{ fontSize: '3rem' }}>🎉</span>
                 <h3 style={{ margin: 0, color: '#4ade80', fontSize: '1.5rem' }}>Vaša pretplata je aktivna!</h3>
