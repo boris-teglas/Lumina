@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import Script from 'next/script'
 import { createClient } from '@/utils/supabase/client'
 import './dashboard.css'
 
@@ -83,6 +84,8 @@ export default function Dashboard() {
   const [selectedAppDetails, setSelectedAppDetails] = useState<Appointment | null>(null)
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
+  const [showUplatnica, setShowUplatnica] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Block time modal states
   const [showBlockModal, setShowBlockModal] = useState(false)
@@ -107,6 +110,10 @@ export default function Dashboard() {
   const [storyThemeColor, setStoryThemeColor] = useState('#ec4899')
   const [storySlotsText, setStorySlotsText] = useState('PETAK: 11:00, 14:00, 16:30\nSUBOTA: 10:00, 12:30')
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const isSubscriptionExpired = salon && !demoMode && (
+    salon.subscription_status === 'expired' || 
+    (salon.subscription_expires_at && new Date(salon.subscription_expires_at).getTime() < Date.now())
+  )
 
   // Mock data for Quick Demo mode
   const loadMockData = () => {
@@ -1268,8 +1275,35 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-container animate-fade-in">
+      {/* Mobile Top Bar */}
+      <div className="mobile-top-bar">
+        <div className="logo-brand">
+          <span>✦</span> GlowLink
+        </div>
+        <button 
+          className="mobile-menu-toggle" 
+          type="button"
+          onClick={() => setIsMobileMenuOpen(true)}
+        >
+          ☰
+        </button>
+      </div>
+
+      {/* Sidebar Navigation Backdrop */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu-backdrop" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
       {/* Sidebar Navigation */}
-      <div className="sidebar">
+      <div className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
+        <button 
+          className="mobile-menu-close" 
+          type="button"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          ✕
+        </button>
+
         <div className="logo-brand">
           <span>✦</span> GlowLink
         </div>
@@ -1277,13 +1311,13 @@ export default function Dashboard() {
         <ul className="nav-list">
           <li
             className={`nav-item ${activeTab === 'stats' ? 'active' : ''}`}
-            onClick={() => setActiveTab('stats')}
+            onClick={() => { setActiveTab('stats'); setIsMobileMenuOpen(false); }}
           >
             📊 Mesečna statistika
           </li>
           <li
             className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`}
-            onClick={() => setActiveTab('calendar')}
+            onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }}
           >
             📅 Kalendar & Termini
             {pendingCount > 0 && (
@@ -1294,37 +1328,37 @@ export default function Dashboard() {
           </li>
           <li
             className={`nav-item ${activeTab === 'crm' ? 'active' : ''}`}
-            onClick={() => setActiveTab('crm')}
+            onClick={() => { setActiveTab('crm'); setIsMobileMenuOpen(false); }}
           >
             👥 Mini CRM (Klijenti)
           </li>
           <li
             className={`nav-item ${activeTab === 'services' ? 'active' : ''}`}
-            onClick={() => setActiveTab('services')}
+            onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }}
           >
             💇‍♀️ Upravljanje Uslugama
           </li>
           <li
             className={`nav-item ${activeTab === 'reviews' ? 'active' : ''}`}
-            onClick={() => setActiveTab('reviews')}
+            onClick={() => { setActiveTab('reviews'); setIsMobileMenuOpen(false); }}
           >
             ⭐ Ocene & Utisci
           </li>
           <li
             className={`nav-item ${activeTab === 'story' ? 'active' : ''}`}
-            onClick={() => setActiveTab('story')}
+            onClick={() => { setActiveTab('story'); setIsMobileMenuOpen(false); }}
           >
             📱 Instagram Story
           </li>
           <li
             className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('settings')}
+            onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }}
           >
             ⚙ Podešavanja
           </li>
           <li
             className={`nav-item ${activeTab === 'billing' ? 'active' : ''}`}
-            onClick={() => setActiveTab('billing')}
+            onClick={() => { setActiveTab('billing'); setIsMobileMenuOpen(false); }}
           >
             💳 Pretplata & Račun
           </li>
@@ -1553,11 +1587,18 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <div className="calendar-actions-wrapper" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   className="btn btn-primary"
-                  style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+                  disabled={isSubscriptionExpired ? true : undefined}
+                  title={isSubscriptionExpired ? 'Pretplata je istekla. Aktivirajte pretplatu da biste dodali termin.' : ''}
+                  style={{ 
+                    padding: '8px 14px', 
+                    fontSize: '0.8rem',
+                    opacity: isSubscriptionExpired ? 0.5 : 1,
+                    cursor: isSubscriptionExpired ? 'not-allowed' : 'pointer'
+                  }}
                   onClick={() => {
                     const today = new Date().toISOString().split('T')[0]
                     setMbDate(today)
@@ -1572,7 +1613,16 @@ export default function Dashboard() {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  style={{ padding: '8px 14px', fontSize: '0.8rem', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}
+                  disabled={isSubscriptionExpired ? true : undefined}
+                  title={isSubscriptionExpired ? 'Pretplata je istekla. Aktivirajte pretplatu da biste blokirali vreme.' : ''}
+                  style={{ 
+                    padding: '8px 14px', 
+                    fontSize: '0.8rem', 
+                    borderColor: 'var(--accent-gold)', 
+                    color: 'var(--accent-gold)',
+                    opacity: isSubscriptionExpired ? 0.5 : 1,
+                    cursor: isSubscriptionExpired ? 'not-allowed' : 'pointer'
+                  }}
                   onClick={() => {
                     const today = new Date().toISOString().split('T')[0]
                     setBlockDate(today)
@@ -2492,98 +2542,106 @@ export default function Dashboard() {
                 {editingServiceId ? 'Izmenite podatke o izabranoj usluzi' : 'Kreirajte novu uslugu u Vašem cenovniku'}
               </p>
 
-              <form onSubmit={handleSaveService}>
-                <div className="form-group">
-                  <label className="form-label">Naziv Usluge</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    required
-                    placeholder="Npr. Gel lak sa dizajnom"
-                    value={newServiceName}
-                    onChange={(e) => setNewServiceName(e.target.value)}
-                  />
-                </div>
+               {isSubscriptionExpired && (
+                 <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', padding: '12px', borderRadius: '8px', color: '#ff6b6b', fontSize: '0.85rem', marginBottom: '16px' }}>
+                   ⚠️ Funkcija je onemogućena jer je Vaša pretplata istekla. Aktivirajte nalog u tabu &quot;Pretplata &amp; Račun&quot; da biste dodali uslugu.
+                 </div>
+               )}
 
-                <div className="form-group">
-                  <label className="form-label">Kategorija Usluge</label>
-                  <select
-                    className="form-input"
-                    value={newServiceCategory}
-                    onChange={(e) => setNewServiceCategory(e.target.value)}
-                  >
-                    <option value="Nokti">Nokti 💅</option>
-                    <option value="Šminka">Šminka 💄</option>
-                    <option value="Trepavice i Obrve">Trepavice i Obrve 👁️</option>
-                    <option value="Nega lica">Nega lica 💆‍♀️</option>
-                    <option value="Frizura">Frizura 💇‍♀️</option>
-                    <option value="Depilacija">Depilacija ⚡</option>
-                    <option value="Masaža">Masaža 🕯️</option>
-                    <option value="Ostalo">Ostalo ✨</option>
-                  </select>
-                </div>
+               <form onSubmit={handleSaveService}>
+                 <fieldset disabled={isSubscriptionExpired ? true : undefined} style={{ border: 'none', padding: 0, margin: 0, width: '100%' }}>
+                   <div className="form-group">
+                     <label className="form-label">Naziv Usluge</label>
+                     <input
+                       type="text"
+                       className="form-input"
+                       required
+                       placeholder="Npr. Gel lak sa dizajnom"
+                       value={newServiceName}
+                       onChange={(e) => setNewServiceName(e.target.value)}
+                     />
+                   </div>
 
-                <div className="form-group">
-                  <label className="form-label">Cena (RSD)</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    required
-                    placeholder="1500"
-                    value={newServicePrice}
-                    onChange={(e) => setNewServicePrice(e.target.value)}
-                  />
-                </div>
+                   <div className="form-group">
+                     <label className="form-label">Kategorija Usluge</label>
+                     <select
+                       className="form-input"
+                       value={newServiceCategory}
+                       onChange={(e) => setNewServiceCategory(e.target.value)}
+                     >
+                       <option value="Nokti">Nokti 💅</option>
+                       <option value="Šminka">Šminka 💄</option>
+                       <option value="Trepavice i Obrve">Trepavice i Obrve 👁️</option>
+                       <option value="Nega lica">Nega lica 💆‍♀️</option>
+                       <option value="Frizura">Frizura 💇‍♀️</option>
+                       <option value="Depilacija">Depilacija ⚡</option>
+                       <option value="Masaža">Masaža 🕯️</option>
+                       <option value="Ostalo">Ostalo ✨</option>
+                     </select>
+                   </div>
 
-                <div className="form-group">
-                  <label className="form-label">Trajanje (Minuti)</label>
-                  <select
-                    className="form-input"
-                    value={newServiceDuration}
-                    onChange={(e) => setNewServiceDuration(e.target.value)}
-                  >
-                    <option value="15">15 minuta</option>
-                    <option value="30">30 minuta</option>
-                    <option value="45">45 minuta</option>
-                    <option value="60">1 sat (60 min)</option>
-                    <option value="75">1 sat 15 min</option>
-                    <option value="90">1.5 sat (90 min)</option>
-                    <option value="120">2 sata (120 min)</option>
-                  </select>
-                </div>
+                   <div className="form-group">
+                     <label className="form-label">Cena (RSD)</label>
+                     <input
+                       type="number"
+                       className="form-input"
+                       required
+                       placeholder="1500"
+                       value={newServicePrice}
+                       onChange={(e) => setNewServicePrice(e.target.value)}
+                     />
+                   </div>
 
-                <div className="form-group">
-                  <label className="form-label">Opis (opciono)</label>
-                  <textarea
-                    className="client-notes-textarea"
-                    placeholder="Npr. ojačavanje, ukrašavanje cirkonima..."
-                    value={newServiceDesc}
-                    onChange={(e) => setNewServiceDesc(e.target.value)}
-                  />
-                </div>
+                   <div className="form-group">
+                     <label className="form-label">Trajanje (Minuti)</label>
+                     <select
+                       className="form-input"
+                       value={newServiceDuration}
+                       onChange={(e) => setNewServiceDuration(e.target.value)}
+                     >
+                       <option value="15">15 minuta</option>
+                       <option value="30">30 minuta</option>
+                       <option value="45">45 minuta</option>
+                       <option value="60">1 sat (60 min)</option>
+                       <option value="75">1 sat 15 min</option>
+                       <option value="90">1.5 sat (90 min)</option>
+                       <option value="120">2 sata (120 min)</option>
+                     </select>
+                   </div>
 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-                  <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                    {editingServiceId ? 'Sačuvaj izmene' : 'Kreiraj uslugu'}
-                  </button>
-                  {editingServiceId && (
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        setEditingServiceId(null)
-                        setNewServiceName('')
-                        setNewServicePrice('')
-                        setNewServiceDuration('30')
-                        setNewServiceDesc('')
-                        setNewServiceCategory('Nokti')
-                      }}
-                    >
-                      Otkaži
-                    </button>
-                  )}
-                </div>
-              </form>
+                   <div className="form-group">
+                     <label className="form-label">Opis (opciono)</label>
+                     <textarea
+                       className="client-notes-textarea"
+                       placeholder="Npr. ojačavanje, ukrašavanje cirkonima..."
+                       value={newServiceDesc}
+                       onChange={(e) => setNewServiceDesc(e.target.value)}
+                     />
+                   </div>
+
+                   <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                     <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                       {editingServiceId ? 'Sačuvaj izmene' : 'Kreiraj uslugu'}
+                     </button>
+                     {editingServiceId && (
+                       <button
+                         type="button"
+                         className="btn btn-secondary"
+                         onClick={() => {
+                           setEditingServiceId(null)
+                           setNewServiceName('')
+                           setNewServicePrice('')
+                           setNewServiceDuration('30')
+                           setNewServiceDesc('')
+                           setNewServiceCategory('Nokti')
+                         }}
+                       >
+                         Otkaži
+                       </button>
+                     )}
+                   </div>
+                 </fieldset>
+               </form>
             </div>
           </div>
         )}
@@ -2674,7 +2732,14 @@ export default function Dashboard() {
               Uredite informacije koje klijenti vide na Vašoj stranici i konfigurišite radno vreme
             </p>
 
+            {isSubscriptionExpired && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', padding: '12px', borderRadius: '8px', color: '#ff6b6b', fontSize: '0.85rem', marginBottom: '16px' }}>
+                ⚠️ Funkcija je onemogućena jer je Vaša pretplata istekla. Aktivirajte nalog u tabu &quot;Pretplata &amp; Račun&quot; da biste izmenili podešavanja.
+              </div>
+            )}
+
             <form onSubmit={handleSaveSettings}>
+              <fieldset disabled={isSubscriptionExpired ? true : undefined} style={{ border: 'none', padding: 0, margin: 0, width: '100%' }}>
               <div className="form-group">
                 <label className="form-label">Naziv Salona</label>
                 <input
@@ -2806,12 +2871,23 @@ export default function Dashboard() {
                   {settingsSaving ? 'Čuvanje...' : 'Sačuvaj podešavanja'}
                 </button>
               </div>
+              </fieldset>
             </form>
           </div>
         )}
 
         {activeTab === 'billing' && (
           <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="lazyOnload" onLoad={() => {
+              if (typeof window !== 'undefined' && (window as any).createLemonSqueezy) {
+                try {
+                  (window as any).createLemonSqueezy()
+                } catch (e) {
+                  console.error('Failed to init LemonSqueezy overlay:', e)
+                }
+              }
+            }} />
+
             {/* Status Card */}
             <div className="glass-panel panel-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', padding: '28px' }}>
               <div>
@@ -2838,171 +2914,265 @@ export default function Dashboard() {
                 </p>
               </div>
               
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button
-                  type="button"
-                  className={`btn ${billingPeriod === 'monthly' ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ padding: '10px 16px', fontSize: '0.85rem' }}
-                  onClick={() => setBillingPeriod('monthly')}
-                >
-                  Mesečni plan (2.000 RSD)
-                </button>
-                <button
-                  type="button"
-                  className={`btn ${billingPeriod === 'yearly' ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ padding: '10px 16px', fontSize: '0.85rem', borderColor: 'var(--accent-gold)', color: billingPeriod === 'yearly' ? '#ffffff' : 'var(--accent-gold)' }}
-                  onClick={() => setBillingPeriod('yearly')}
-                >
-                  Godišnji plan (18.000 RSD - 25% 🎁)
-                </button>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {salon?.subscription_status === 'active' && (
+                  <div style={{ display: 'inline-block', background: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', padding: '10px 18px', borderRadius: '8px', fontSize: '0.85rem', color: '#4ade80', fontWeight: 'bold' }}>
+                    Aktivno plaćanje karticom 💳
+                  </div>
+                )}
+                {salon?.billing_portal_url && (
+                  <a
+                    href={salon.billing_portal_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', padding: '10px 18px', textDecoration: 'none', background: 'rgba(255, 255, 255, 0.05)', borderColor: 'var(--border-color)', color: '#ffffff' }}
+                  >
+                    ⚙ Upravljaj pretplatom
+                  </a>
+                )}
               </div>
             </div>
 
-            {/* Billing Guide & Payment Slip Section */}
+            {/* Pricing Section (Lemon Squeezy Integration) */}
             <div className="glass-panel panel-card" style={{ padding: '28px' }}>
-              <h3 style={{ marginBottom: '8px' }}>Uputstvo za plaćanje</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '24px' }}>
-                Uplatite pretplatu skeniranjem IPS QR koda ispod pomoću mobilne aplikacije Vaše banke, ili popunite nalog za uplatu u banci/e-bankingu prema priloženom uzorku.
+              <h3 style={{ marginBottom: '8px' }}>Izaberite plan pretplate</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '28px' }}>
+                Aktivirajte Lumina licencu brzo i bezbedno plaćanjem karticom. Pretplata se može otkazati bilo kada jednim klikom.
               </p>
 
-              {/* Styled Serbian Uplatnica Container */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', background: '#fffdf0', border: '2px solid #d4af37', borderRadius: '12px', padding: '24px', color: '#1c1917', fontFamily: '"Plus Jakarta Sans", sans-serif', maxWidth: '850px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', maxWidth: '850px', margin: '0 auto 20px auto' }}>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #d4af37', paddingBottom: '12px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#854d0e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Nalog za uplatu (Uzorak)
-                  </span>
-                  <span style={{ fontSize: '0.8rem', color: '#854d0e' }}>
-                    GlowLink d.o.o. / Boris Teglaš PR
-                  </span>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
-                  
-                  {/* Left part of payment slip */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Uplatilac</label>
-                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', minHeight: '36px', fontWeight: '600' }}>
-                        Salon: {salon?.name || 'Moj Salon'}
+                {/* Monthly Subscription Card */}
+                <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: billingPeriod === 'monthly' ? '2px solid var(--primary)' : '1px solid var(--border-color)', background: 'rgba(255, 255, 255, 0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '340px', transition: 'all 0.3s ease' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold' }}>Mesečni Paket</h4>
+                        <span className="badge" style={{ background: 'rgba(236, 72, 153, 0.1)', color: 'var(--primary)', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold' }}>Mesečno</span>
                       </div>
+                      <div style={{ marginBottom: '20px' }}>
+                        <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#ffffff' }}>2.000 RSD</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}> / mesec</span>
+                      </div>
+                      <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        <li> Neograničen broj klijenata i termina</li>
+                        <li> SMS i Email obaveštenja</li>
+                        <li> CRM baza i kartoni klijenata</li>
+                        <li> Izveštaji i statistika salona</li>
+                      </ul>
                     </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Svrha uplate</label>
-                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', minHeight: '36px', fontWeight: '600' }}>
-                        Pretplata za salon - {salon?.name || 'GlowLink'} ({billingPeriod === 'monthly' ? 'Mesečni' : 'Godišnji'} paket)
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Primalac</label>
-                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', minHeight: '36px', fontWeight: '600' }}>
-                        Boris Teglaš PR, Beograd
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right part of payment slip */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '80px 60px 1fr', gap: '8px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '0.65rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Šifra plać.</label>
-                        <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '6px', borderRadius: '4px', textAlign: 'center', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                          289
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '0.65rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Valuta</label>
-                        <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '6px', borderRadius: '4px', textAlign: 'center', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                          RSD
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '0.65rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Iznos</label>
-                        <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '6px 12px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', color: '#b45309', textAlign: 'right' }}>
-                          {billingPeriod === 'monthly' ? '2.000,00' : '18.000,00'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Račun primaoca</label>
-                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                        265-0000001234567-89
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Poziv na broj (odobrenje)</label>
-                      <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', color: '#1e3a8a' }}>
-                        GL-{salon?.slug || 'salon'}
-                      </div>
+                    <div style={{ marginTop: '24px' }}>
+                      <a
+                        className="btn btn-primary lemonsqueezy-button"
+                        href={`https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_MONTHLY_VARIANT_ID || 'ea40e779-3ae5-4cc4-abfa-3198bd0cbd13'}?checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
+                        style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none' }}
+                        onClick={() => setBillingPeriod('monthly')}
+                      >
+                        Aktiviraj Mesečno 💳
+                      </a>
                     </div>
                   </div>
                 </div>
 
-                {/* Bottom line: QR Code and instructions */}
-                <div style={{ display: 'flex', borderTop: '1px solid rgba(212,175,55,0.3)', paddingTop: '16px', marginTop: '8px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                {/* Yearly Subscription Card */}
+                <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: billingPeriod === 'yearly' ? '2px solid var(--accent-gold)' : '1px solid var(--border-color)', background: 'rgba(255, 255, 255, 0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '340px', transition: 'all 0.3s ease', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: '-12px', right: '20px', background: 'var(--accent-gold)', color: '#1c1917', fontSize: '0.75rem', fontWeight: 'bold', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', boxShadow: '0 4px 12px rgba(212,175,55,0.3)' }}>
+                    Ušteda 25% 🎁
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>Godišnji Paket</h4>
+                        <span className="badge" style={{ background: 'rgba(212, 175, 55, 0.1)', color: 'var(--accent-gold)', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold' }}>Godišnje</span>
+                      </div>
+                      <div style={{ marginBottom: '20px' }}>
+                        <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#ffffff' }}>18.000 RSD</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}> / godina</span>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', marginTop: '4px' }}>Ušteda 6.000 RSD godišnje</div>
+                      </div>
+                      <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        <li> Sve iz mesečnog paketa</li>
+                        <li> Prioritetna podrška 24/7</li>
+                        <li> <strong>2 meseca GRATIS</strong></li>
+                        <li> Garantovano fiksna cena</li>
+                      </ul>
+                    </div>
+                    <div style={{ marginTop: '24px' }}>
+                      <a
+                        className="btn lemonsqueezy-button"
+                        href={`https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_YEARLY_VARIANT_ID || '0f6fc52c-7e05-4e50-a838-31a67fd147a8'}?checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
+                        style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none', background: 'var(--accent-gold)', borderColor: 'var(--accent-gold)', color: '#1c1917' }}
+                        onClick={() => setBillingPeriod('yearly')}
+                      >
+                        Aktiviraj Godišnje 👑
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Alternativne metode plaćanja (Uplatnica) - Collapsible Accordion */}
+            <div className="glass-panel panel-card" style={{ padding: '20px' }}>
+              <div 
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                onClick={() => setShowUplatnica(!showUplatnica)}
+              >
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)' }}>📄 Druge metode plaćanja (IPS QR kod / uplatnica)</h4>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    Kliknite ovde ako želite da izvršite plaćanje skeniranjem IPS QR koda ili popunjavanjem uplatnice (samo za Srbiju)
+                  </p>
+                </div>
+                <span style={{ fontSize: '1.2rem', transform: showUplatnica ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}>
+                  ▼
+                </span>
+              </div>
+
+              {showUplatnica && (
+                <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-color)', animation: 'fade-in 0.3s ease' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', background: '#fffdf0', border: '2px solid #d4af37', borderRadius: '12px', padding: '24px', color: '#1c1917', fontFamily: '"Plus Jakarta Sans", sans-serif', maxWidth: '850px' }}>
                     
-                    {/* Simulated IPS QR Code SVG */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                      <svg width="120" height="120" viewBox="0 0 150 150" style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #d4af37' }}>
-                        <rect x="0" y="0" width="30" height="30" fill="#000000"/>
-                        <rect x="5" y="5" width="20" height="20" fill="#ffffff"/>
-                        <rect x="10" y="10" width="10" height="10" fill="#000000"/>
-
-                        <rect x="120" y="0" width="30" height="30" fill="#000000"/>
-                        <rect x="125" y="5" width="20" height="20" fill="#ffffff"/>
-                        <rect x="130" y="10" width="10" height="10" fill="#000000"/>
-
-                        <rect x="0" y="120" width="30" height="30" fill="#000000"/>
-                        <rect x="5" y="125" width="20" height="20" fill="#ffffff"/>
-                        <rect x="10" y="130" width="10" height="10" fill="#000000"/>
-                        
-                        <rect x="40" y="5" width="10" height="10" fill="#000000"/>
-                        <rect x="60" y="15" width="10" height="10" fill="#000000"/>
-                        <rect x="80" y="0" width="15" height="15" fill="#000000"/>
-                        <rect x="100" y="10" width="10" height="10" fill="#000000"/>
-
-                        <rect x="40" y="40" width="20" height="20" fill="#000000"/>
-                        <rect x="80" y="50" width="10" height="10" fill="#000000"/>
-                        <rect x="110" y="40" width="20" height="10" fill="#000000"/>
-
-                        <rect x="5" y="50" width="10" height="15" fill="#000000"/>
-                        <rect x="20" y="80" width="15" height="10" fill="#000000"/>
-
-                        <rect x="50" y="80" width="30" height="30" fill="#000000"/>
-                        <rect x="55" y="85" width="20" height="20" fill="#ffffff"/>
-                        <rect x="62" y="92" width="6" height="6" fill="#cc0000"/>
-                        
-                        <rect x="90" y="90" width="10" height="10" fill="#000000"/>
-                        <rect x="110" y="110" width="20" height="15" fill="#000000"/>
-                        <rect x="130" y="70" width="15" height="20" fill="#000000"/>
-                      </svg>
-                      <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#cc0000', letterSpacing: '0.5px' }}>
-                        IPS POKAŽI 📱
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #d4af37', paddingBottom: '12px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#854d0e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Nalog za uplatu (Uzorak)
+                      </span>
+                      <span style={{ fontSize: '0.8rem', color: '#854d0e' }}>
+                        GlowLink d.o.o. / Boris Teglaš PR
                       </span>
                     </div>
 
-                    <div style={{ maxWidth: '380px' }}>
-                      <h4 style={{ margin: 0, fontSize: '0.85rem', color: '#854d0e' }}>Brzo IPS plaćanje skeniranjem</h4>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '0.75rem', color: '#a16207', lineHeight: '1.4' }}>
-                        Otvorite aplikaciju Vaše banke, izaberite opciju &quot;IPS skeniraj&quot;, skenirajte ovaj kod i potvrdite transakciju. Sva polja i poziv na broj biće automatski popunjeni.
-                      </p>
-                    </div>
-                  </div>
+                    <div className="uplatnica-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
+                      
+                      {/* Left part of payment slip */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Uplatilac</label>
+                          <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', minHeight: '36px', fontWeight: '600' }}>
+                            Salon: {salon?.name || 'Moj Salon'}
+                          </div>
+                        </div>
 
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ display: 'inline-block', background: 'rgba(212,175,55,0.1)', border: '1px dashed #d4af37', padding: '6px 12px', borderRadius: '4px', fontSize: '0.7rem', color: '#854d0e', fontWeight: 'bold' }}>
-                      Nakon uplate, odobrenje traje do 24 sata.
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Svrha uplate</label>
+                          <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', minHeight: '36px', fontWeight: '600' }}>
+                            Pretplata za salon - {salon?.name || 'GlowLink'} ({billingPeriod === 'monthly' ? 'Mesečni' : 'Godišnji'} paket)
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Primalac</label>
+                          <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', minHeight: '36px', fontWeight: '600' }}>
+                            Boris Teglaš PR, Beograd
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right part of payment slip */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '80px 60px 1fr', gap: '8px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <label style={{ fontSize: '0.65rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Šifra plać.</label>
+                            <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '6px', borderRadius: '4px', textAlign: 'center', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                              289
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <label style={{ fontSize: '0.65rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Valuta</label>
+                            <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '6px', borderRadius: '4px', textAlign: 'center', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                              RSD
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <label style={{ fontSize: '0.65rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Iznos</label>
+                            <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '6px 12px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', color: '#b45309', textAlign: 'right' }}>
+                              {billingPeriod === 'monthly' ? '2.000,00' : '18.000,00'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Račun primaoca</label>
+                          <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                            265-0000001234567-89
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '0.7rem', color: '#854d0e', textTransform: 'uppercase', fontWeight: 'bold' }}>Poziv na broj (odobrenje)</label>
+                          <div style={{ border: '1px solid #d4af37', background: '#ffffff', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', color: '#1e3a8a' }}>
+                            GL-{salon?.slug || 'salon'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom line: QR Code and instructions */}
+                    <div style={{ display: 'flex', borderTop: '1px solid rgba(212,175,55,0.3)', paddingTop: '16px', marginTop: '8px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+                      <div className="uplatnica-qr-row" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        
+                        {/* Simulated IPS QR Code SVG */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                          <svg width="120" height="120" viewBox="0 0 150 150" style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #d4af37' }}>
+                            <rect x="0" y="0" width="30" height="30" fill="#000000"/>
+                            <rect x="5" y="5" width="20" height="20" fill="#ffffff"/>
+                            <rect x="10" y="10" width="10" height="10" fill="#000000"/>
+
+                            <rect x="120" y="0" width="30" height="30" fill="#000000"/>
+                            <rect x="125" y="5" width="20" height="20" fill="#ffffff"/>
+                            <rect x="130" y="10" width="10" height="10" fill="#000000"/>
+
+                            <rect x="0" y="120" width="30" height="30" fill="#000000"/>
+                            <rect x="5" y="125" width="20" height="20" fill="#ffffff"/>
+                            <rect x="10" y="130" width="10" height="10" fill="#000000"/>
+                            
+                            <rect x="40" y="5" width="10" height="10" fill="#000000"/>
+                            <rect x="60" y="15" width="10" height="10" fill="#000000"/>
+                            <rect x="80" y="0" width="15" height="15" fill="#000000"/>
+                            <rect x="100" y="10" width="10" height="10" fill="#000000"/>
+
+                            <rect x="40" y="40" width="20" height="20" fill="#000000"/>
+                            <rect x="80" y="50" width="10" height="10" fill="#000000"/>
+                            <rect x="110" y="40" width="20" height="10" fill="#000000"/>
+
+                            <rect x="5" y="50" width="10" height="15" fill="#000000"/>
+                            <rect x="20" y="80" width="15" height="10" fill="#000000"/>
+
+                            <rect x="50" y="80" width="30" height="30" fill="#000000"/>
+                            <rect x="55" y="85" width="20" height="20" fill="#ffffff"/>
+                            <rect x="62" y="92" width="6" height="6" fill="#cc0000"/>
+                            
+                            <rect x="90" y="90" width="10" height="10" fill="#000000"/>
+                            <rect x="110" y="110" width="20" height="15" fill="#000000"/>
+                            <rect x="130" y="70" width="15" height="20" fill="#000000"/>
+                          </svg>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#cc0000', letterSpacing: '0.5px' }}>
+                            IPS POKAŽI 📱
+                          </span>
+                        </div>
+
+                        <div style={{ maxWidth: '380px' }}>
+                          <h4 style={{ margin: 0, fontSize: '0.85rem', color: '#854d0e' }}>Brzo IPS plaćanje skeniranjem</h4>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '0.75rem', color: '#a16207', lineHeight: '1.4' }}>
+                            Otvorite aplikaciju Vaše banke, izaberite opciju &quot;IPS skeniraj&quot;, skenirajte ovaj kod i potvrdite transakciju. Sva polja i poziv na broj biće automatski popunjeni.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-block', background: 'rgba(212,175,55,0.1)', border: '1px dashed #d4af37', padding: '6px 12px', borderRadius: '4px', fontSize: '0.7rem', color: '#854d0e', fontWeight: 'bold' }}>
+                          Nakon uplate, odobrenje traje do 24 sata.
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
+
           </div>
         )}
       </div>

@@ -4,16 +4,16 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Navigation */}
-      <header className="glass-panel" style={{ borderRadius: '0 0 20px 20px', borderTop: 'none', padding: '16px 0', position: 'sticky', top: 0, zIndex: 100 }}>
+      <header className="glass-panel landing-header" style={{ borderRadius: '0 0 20px 20px', borderTop: 'none', padding: '16px 0', position: 'sticky', top: 0, zIndex: 100 }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link href="/" className="logo-brand" style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit' }}>
             ✦ GlowLink
           </Link>
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="nav-buttons-container" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <Link href="/auth" className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
               Prijavi se
             </Link>
-            <Link href="/jelena-nokti" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+            <Link href="/jelena-nokti" className="btn btn-primary nav-demo-btn" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
               Vidi Demo Booking
             </Link>
           </div>

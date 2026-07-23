@@ -359,3 +359,19 @@ body {
     padding-right: 16px;
   }
 }
+
+/* Landing Page Mobile Optimizations */
+@media (max-width: 600px) {
+  .nav-buttons-container {
+    gap: 8px !important;
+  }
+  
+  .nav-demo-btn {
+    display: none !important; /* Hide "Vidi Demo Booking" in header on mobile screens to save space */
+  }
+  
+  .landing-header {
+    border-radius: 0 0 12px 12px !important;
+    padding: 12px 0 !important;
+  }
+}
