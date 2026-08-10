@@ -211,6 +211,16 @@ export default function Dashboard() {
 
   // Handle Authentication status check
   useEffect(() => {
+    // Check if demo parameter is present in URL
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('demo') === 'true') {
+        setDemoMode(true)
+        loadMockData()
+        return
+      }
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session) {

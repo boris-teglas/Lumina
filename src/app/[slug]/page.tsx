@@ -33,6 +33,35 @@ interface TimeSlot {
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
+const MOCK_DEMO_SALON: Salon = {
+  id: 'mock-demo-salon',
+  name: 'Nails & Lashes by Jelena',
+  description: 'Sve za Vaš savršen izgled na jednom mestu. Dobrodošli u naš demo salon!',
+  theme_color: '#ec4899',
+  working_hours: {
+    sun: { open: '10:00', close: '15:00', is_working: false },
+    mon: { open: '09:00', close: '19:00', is_working: true },
+    tue: { open: '09:00', close: '19:00', is_working: true },
+    wed: { open: '09:00', close: '19:00', is_working: true },
+    thu: { open: '09:00', close: '19:00', is_working: true },
+    fri: { open: '09:00', close: '19:00', is_working: true },
+    sat: { open: '10:00', close: '17:00', is_working: true }
+  }
+}
+
+const MOCK_DEMO_SERVICES: Service[] = [
+  { id: 's1', name: 'Izlivanje noktiju', description: 'Kompletno izlivanje noktiju sa gelom po želji', duration_minutes: 90, price: 2500, category: 'Nokti' },
+  { id: 's2', name: 'Korekcija noktiju', description: 'Korekcija i dopuna gela sa sređivanjem zanoktica', duration_minutes: 60, price: 1800, category: 'Nokti' },
+  { id: 's3', name: 'Gel lak', description: 'Ojačavanje prirodnih noktiju gel lakom', duration_minutes: 45, price: 1200, category: 'Nokti' },
+  { id: 's4', name: 'Svilene trepavice 3D', description: 'Ruski volumen 3D svilenih trepavica', duration_minutes: 90, price: 3000, category: 'Trepavice' }
+]
+
+const MOCK_DEMO_REVIEWS = [
+  { id: 'r1', client_name: 'Milica P.', rating: 5, comment: 'Nokti su uvek savršeni i traju nedeljama!', created_at: new Date().toISOString() },
+  { id: 'r2', client_name: 'Jovana L.', rating: 5, comment: 'Preporučujem tihe termine, divno iskustvo opuštanja.', created_at: new Date().toISOString() },
+  { id: 'r3', client_name: 'Ana M.', rating: 4, comment: 'Lepa atmosfera i super usluga.', created_at: new Date().toISOString() }
+]
+
 export default function BookingPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = React.use(params)
   const slug = resolvedParams.slug
@@ -112,6 +141,13 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
           .single()
 
         if (salonErr || !salonData) {
+          if (slug === 'jelena-nokti' || slug === 'demo') {
+            setSalon(MOCK_DEMO_SALON)
+            setServices(MOCK_DEMO_SERVICES)
+            setReviews(MOCK_DEMO_REVIEWS)
+            document.documentElement.style.setProperty('--primary', MOCK_DEMO_SALON.theme_color)
+            return
+          }
           setError('Salon nije pronađen. Proverite link.')
           return
         }
@@ -149,6 +185,13 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
         }
       } catch (err) {
         console.error(err)
+        if (slug === 'jelena-nokti' || slug === 'demo') {
+          setSalon(MOCK_DEMO_SALON)
+          setServices(MOCK_DEMO_SERVICES)
+          setReviews(MOCK_DEMO_REVIEWS)
+          document.documentElement.style.setProperty('--primary', MOCK_DEMO_SALON.theme_color)
+          return
+        }
         setError('Došlo je do greške pri učitavanju salona.')
       } finally {
         setLoading(false)
@@ -197,13 +240,17 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
       const dayStart = `${selectedDate}T00:00:00`
       const dayEnd = `${selectedDate}T23:59:59`
 
-      const { data: existingApps } = await supabase
-        .from('appointments')
-        .select('start_time, end_time, status')
-        .eq('salon_id', salon.id)
-        .gte('start_time', dayStart)
-        .lte('start_time', dayEnd)
-        .in('status', ['pending', 'confirmed'])
+      let existingApps: any[] = []
+      if (salon.id !== 'mock-demo-salon') {
+        const { data } = await supabase
+          .from('appointments')
+          .select('start_time, end_time, status')
+          .eq('salon_id', salon.id)
+          .gte('start_time', dayStart)
+          .lte('start_time', dayEnd)
+          .in('status', ['pending', 'confirmed'])
+        existingApps = data || []
+      }
 
       // Check each slot for conflicts
       const bookedRanges = (existingApps || []).map(app => ({
@@ -249,6 +296,11 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
   useEffect(() => {
     if (!salon || clientPhone.length < 9) {
       setLoyaltyCard(null)
+      return
+    }
+
+    if (salon.id === 'mock-demo-salon') {
+      setLoyaltyCard({ stamps_count: 3, reward_ready: false })
       return
     }
 
@@ -301,6 +353,12 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
     if (!salon || !clientName || !clientPhone) return
 
     setSubmitting(true)
+    if (salon.id === 'mock-demo-salon') {
+      setWaitlistStatus('success')
+      setSubmitting(false)
+      return
+    }
+
     try {
       const { data: clientData, error: clientErr } = await supabase
         .from('clients')
@@ -346,6 +404,26 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
     }
 
     setSubmitting(true)
+    if (salon.id === 'mock-demo-salon') {
+      const startTime = new Date(`${selectedDate}T${selectedSlot}:00`)
+      const endTime = new Date(startTime.getTime() + selectedService.duration_minutes * 60000)
+
+      setBookedAppointment({
+        id: 'mock-app-' + Date.now(),
+        salon_id: salon.id,
+        service_id: selectedService.id,
+        client_id: 'mock-client-id',
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        status: 'confirmed',
+        silent_appointment: silentAppointment,
+        price_charged: selectedService.price,
+      })
+      setPendingApproval(false)
+      setSubmitting(false)
+      return
+    }
+
     try {
       // 1. Check if user is on blacklist
       const { data: blacklistData } = await supabase
@@ -416,6 +494,23 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
     }
 
     setSubmittingReview(true)
+    if (salon.id === 'mock-demo-salon') {
+      const newRev = {
+        id: 'r-' + Date.now(),
+        client_name: revName,
+        rating: revRating,
+        comment: revComment,
+        created_at: new Date().toISOString()
+      }
+      setReviews(prev => [newRev, ...prev])
+      alert('Hvala Vam na recenziji! Vaš utisak je zabeležen (Demo mod). 🌸')
+      setShowReviewModal(false)
+      setRevName('')
+      setRevRating(5)
+      setRevComment('')
+      setSubmittingReview(false)
+      return
+    }
     try {
       const { error: revErr } = await supabase
         .from('reviews')

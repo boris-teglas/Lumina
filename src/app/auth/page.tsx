@@ -284,11 +284,9 @@ export default function AuthPage() {
         </div>
 
         {/* Demo Button */}
-        <Link href="/dashboard?demo=true">
-          <button type="button" className="btn btn-secondary auth-demo-btn">
-            <span>🎭</span>
-            Vidi Demo mod (bez registracije)
-          </button>
+        <Link href="/dashboard?demo=true" className="btn btn-secondary auth-demo-btn">
+          <span>🎭</span>
+          Vidi Demo mod (bez registracije)
         </Link>
 
         {/* Back Link */}
