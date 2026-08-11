@@ -50,9 +50,10 @@ Svih 9 tabela u `public` šemi imaju omogućen **Row Level Security (RLS)** (`rl
 * Direktni linkovi ka demo verzijama koji rade 100% bez 404 grešaka.
 
 ### 2. Autentifikacija (`/auth`)
-* Čista forma za Prijavu i Registraciju preko Supabase Auth-a.
+* Unificirani ekran za Prijavu, Registraciju i Zaboravljenu lozinku (`/auth`).
+* Podrška za resetovanje lozinke sa verifikacionom stranicom (`/auth/update-password`) i PKCE callback preusmeravanjem (`/auth/callback`).
+* Uklonjena stara duplirana login forma sa `/dashboard` stranice – odjava sada čisto preusmerava na zvaničnu `/auth` stranicu.
 * Dugme za instant pristup demo modu: `Vidi Demo mod (bez registracije)`.
-* Sprečeno dupliranje login formi.
 
 ### 3. Nadzorna Tabla za Salone (`/dashboard`)
 * Responzivni mobilni header sa hamburger dugmetom (`☰`) i kliznim sidemenu drawer-om.
