@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
@@ -27,6 +27,23 @@ export default function AuthPage() {
 
   // Forgot Password state
   const [forgotEmail, setForgotEmail] = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+      router.push('/auth/update-password' + window.location.hash)
+      return
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        router.push('/auth/update-password')
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [router])
 
   const switchTab = (tab: AuthTab) => {
     setActiveTab(tab)

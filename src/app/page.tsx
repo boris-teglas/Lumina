@@ -1,6 +1,31 @@
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/utils/supabase/client'
 
 export default function Home() {
+  const router = useRouter()
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    // Handle hash fragments like #access_token=...&type=recovery
+    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+      router.push('/auth/update-password' + window.location.hash)
+      return
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        router.push('/auth/update-password')
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [router])
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Navigation */}
