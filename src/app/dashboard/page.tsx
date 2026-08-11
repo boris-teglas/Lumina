@@ -52,6 +52,7 @@ export default function Dashboard() {
   
   // Auth state
   const [session, setSession] = useState<any>(null)
+  const [authChecking, setAuthChecking] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
@@ -213,31 +214,41 @@ export default function Dashboard() {
 
   // Handle Authentication status check
   useEffect(() => {
+    let isMounted = true
+
     // Check if demo parameter is present in URL
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
       if (params.get('demo') === 'true') {
         setDemoMode(true)
         loadMockData()
+        setAuthChecking(false)
         return
       }
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return
       setSession(session)
       if (session) {
         loadRealData(session.user.id)
       }
+      setAuthChecking(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return
       setSession(session)
       if (session) {
         loadRealData(session.user.id)
       }
+      setAuthChecking(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   // Fetch real data from Supabase
@@ -1158,12 +1169,23 @@ export default function Dashboard() {
   const pendingCount = appointments.filter(a => a.status === 'pending').length
   const totalClientStamps = clients.length
 
-  // Redirect unauthenticated users to /auth
+  // Redirect unauthenticated users to /auth only AFTER auth checking completes
   useEffect(() => {
-    if (!session && !demoMode) {
+    if (!authChecking && !session && !demoMode) {
       router.push('/auth')
     }
-  }, [session, demoMode, router])
+  }, [authChecking, session, demoMode, router])
+
+  if (authChecking) {
+    return (
+      <div className="auth-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+          <span className="logo-brand" style={{ justifyContent: 'center', fontSize: '2rem', marginBottom: '16px', display: 'flex' }}>✦ GlowLink</span>
+          <p style={{ fontSize: '0.95rem' }}>Učitavanje nadzorne table...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!session && !demoMode) {
     return (
