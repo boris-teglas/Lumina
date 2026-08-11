@@ -421,6 +421,31 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
       })
       setPendingApproval(false)
       setSubmitting(false)
+
+      if (clientEmail && clientEmail.includes('@')) {
+        try {
+          await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'booking_confirmation',
+              clientEmail: clientEmail,
+              clientName: clientName,
+              clientPhone: clientPhone,
+              salonName: salon.name,
+              salonSlug: slug,
+              serviceName: selectedService.name,
+              servicePrice: selectedService.price,
+              durationMinutes: selectedService.duration_minutes,
+              date: selectedDate,
+              time: selectedSlot,
+              silentAppointment: silentAppointment,
+            })
+          })
+        } catch (e) {
+          console.warn('Demo email error:', e)
+        }
+      }
       return
     }
 
@@ -477,6 +502,31 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
 
       setBookedAppointment(appointmentData)
       setPendingApproval(blockNeedsApproval)
+
+      // Send Email notification asynchronously
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'booking_confirmation',
+            clientEmail: clientEmail || null,
+            clientName: clientName,
+            clientPhone: clientPhone,
+            salonName: salon.name,
+            salonSlug: slug,
+            serviceName: selectedService.name,
+            servicePrice: selectedService.price,
+            durationMinutes: selectedService.duration_minutes,
+            date: selectedDate,
+            time: selectedSlot,
+            silentAppointment: silentAppointment,
+            salonOwnerEmail: (salon as any).owner_email || null
+          })
+        })
+      } catch (emailErr) {
+        console.warn('E-mail sending notification failed:', emailErr)
+      }
     } catch (err) {
       console.error(err)
       alert('Došlo je do greške prilikom rezervacije. Molimo pokušajte ponovo.')

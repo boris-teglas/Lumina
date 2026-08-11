@@ -82,6 +82,14 @@ Svih 9 tabela u `public` šemi imaju omogućen **Row Level Security (RLS)** (`rl
 * CNAME Record: `www` $\rightarrow$ `522c6ffb36129157.vercel-dns-017.com.`
 * Vercel HTTPS SSL sertifikat je generisan i aktivan.
 
+### 7. Resend E-mail Automatizacija (`/api/send-email`)
+* Verifikovan domen `glowlink.me` na Resend servisu preko Namecheap DNS zapisa (DKIM, SPF MX, SPF TXT, DMARC).
+* Povezan Resend API sa skladištenim ključem u `.env.local`.
+* Automatsko slanje prelepih HTML e-mail obaveštenja sa adrese `podrska@glowlink.me`:
+  - **Potvrda klijentu:** Detalji rezervacije, vreme, cena, trajanje i podsetnik za "Tihi termin".
+  - **Notifikacija salonu:** Obaveštenje vlasniku salona o novom zakazanom terminu sa kontakt podacima klijenta.
+
+
 ---
 
 ## 🚀 Uputstvo za Nastavak u Novom Chatu
