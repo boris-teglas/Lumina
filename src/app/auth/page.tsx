@@ -66,7 +66,7 @@ export default function AuthPage() {
 
     try {
       const supabase = createClient()
-      const redirectUrl = `${window.location.origin}/auth/update-password`
+      const redirectUrl = `${window.location.origin}/auth/callback?next=/auth/update-password`
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
         redirectTo: redirectUrl,
       })
@@ -102,10 +102,12 @@ export default function AuthPage() {
 
     try {
       const supabase = createClient()
+      const redirectUrl = `${window.location.origin}/auth/callback?next=/dashboard`
       const { error } = await supabase.auth.signUp({
         email: regEmail,
         password: regPassword,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             full_name: regName,
           },
