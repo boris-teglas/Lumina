@@ -2853,6 +2853,30 @@ export default function Dashboard() {
 
         {activeTab === 'billing' && (
           <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {demoMode && (
+              <div style={{
+                background: 'rgba(236, 72, 153, 0.12)',
+                border: '1px solid rgba(236, 72, 153, 0.35)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                color: '#f472b6',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+              }}>
+                <span style={{ fontSize: '2rem' }}>🎭</span>
+                <div>
+                  <div style={{ fontSize: '1.05rem', color: '#ffffff', fontWeight: 700, marginBottom: '4px' }}>
+                    Trenutno ste u Demo modu pregleda
+                  </div>
+                  <div style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: '1.5' }}>
+                    Ovo je demonstrativni prikaz aplikacije. Plaćanje i aktivacija paketa nisu mogući u demo režimu. Za pravu aktivaciju pretplate napravite nalog u sekciji za registraciju.
+                  </div>
+                </div>
+              </div>
+            )}
+
             <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="lazyOnload" onLoad={() => {
               if (typeof window !== 'undefined' && (window as any).createLemonSqueezy) {
                 try {
@@ -2867,12 +2891,12 @@ export default function Dashboard() {
             <div className="glass-panel panel-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', padding: '28px' }}>
               <div>
                 <span className="badge badge-warning" style={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                  {salon?.subscription_status === 'trial' ? 'Probna Verzija (Trial)' : 
-                   (salon?.subscription_status === 'active' ? 'Aktivan Nalog' : 'Pretplata Istekla')}
+                  {demoMode ? 'Demo Režim (Pregled)' : (salon?.subscription_status === 'trial' ? 'Probna Verzija (Trial)' : 
+                   (salon?.subscription_status === 'active' ? 'Aktivan Nalog' : 'Pretplata Istekla'))}
                 </span>
                 <h3 style={{ margin: '8px 0 4px 0', fontSize: '1.4rem' }}>
-                  {salon?.subscription_status === 'trial' ? 'Koristite besplatni probni period' : 
-                   (salon?.subscription_status === 'active' ? 'Vaša pretplata je aktivna!' : 'Pristup planerima je zaključan')}
+                  {demoMode ? 'Demonstrativni prikaz funkcija' : (salon?.subscription_status === 'trial' ? 'Koristite besplatni probni period' : 
+                   (salon?.subscription_status === 'active' ? 'Vaša pretplata je aktivna!' : 'Pristup planerima je zaključan'))}
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
                   {(() => {
@@ -2943,9 +2967,16 @@ export default function Dashboard() {
                         <div style={{ marginTop: '24px' }}>
                           <a
                             className="btn btn-primary lemonsqueezy-button"
-                            href={`https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_MONTHLY_VARIANT_ID || 'ea40e779-3ae5-4cc4-abfa-3198bd0cbd13'}?checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
-                            style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none' }}
-                            onClick={() => setBillingPeriod('monthly')}
+                            href={demoMode ? '#' : `https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_MONTHLY_VARIANT_ID || 'ea40e779-3ae5-4cc4-abfa-3198bd0cbd13'}?checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
+                            style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none', opacity: demoMode ? 0.7 : 1 }}
+                            onClick={(e) => {
+                              if (demoMode) {
+                                e.preventDefault()
+                                alert('Trenutno ste u Demo modu. Plaćanje pretplate nije moguće u režimu pregleda.')
+                                return
+                              }
+                              setBillingPeriod('monthly')
+                            }}
                           >
                             Aktiviraj Mesečno 💳
                           </a>
@@ -2979,9 +3010,16 @@ export default function Dashboard() {
                         <div style={{ marginTop: '24px' }}>
                           <a
                             className="btn lemonsqueezy-button"
-                            href={`https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_YEARLY_VARIANT_ID || '0f6fc52c-7e05-4e50-a838-31a67fd147a8'}?checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
-                            style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none', background: 'var(--accent-gold)', borderColor: 'var(--accent-gold)', color: '#1c1917' }}
-                            onClick={() => setBillingPeriod('yearly')}
+                            href={demoMode ? '#' : `https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_YEARLY_VARIANT_ID || '0f6fc52c-7e05-4e50-a838-31a67fd147a8'}?checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
+                            style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none', background: 'var(--accent-gold)', borderColor: 'var(--accent-gold)', color: '#1c1917', opacity: demoMode ? 0.7 : 1 }}
+                            onClick={(e) => {
+                              if (demoMode) {
+                                e.preventDefault()
+                                alert('Trenutno ste u Demo modu. Plaćanje pretplate nije moguće u režimu pregleda.')
+                                return
+                              }
+                              setBillingPeriod('yearly')
+                            }}
                           >
                             Aktiviraj Godišnje 👑
                           </a>
