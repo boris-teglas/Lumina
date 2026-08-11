@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Script from 'next/script'
 import { createClient } from '@/utils/supabase/client'
 import './dashboard.css'
@@ -46,6 +47,7 @@ interface Review {
 }
 
 export default function Dashboard() {
+  const router = useRouter()
   const supabase = createClient()
   
   // Auth state
@@ -1156,79 +1158,19 @@ export default function Dashboard() {
   const pendingCount = appointments.filter(a => a.status === 'pending').length
   const totalClientStamps = clients.length
 
-  // Authentication UI
+  // Redirect unauthenticated users to /auth
+  useEffect(() => {
+    if (!session && !demoMode) {
+      router.push('/auth')
+    }
+  }, [session, demoMode, router])
+
   if (!session && !demoMode) {
     return (
-      <div className="auth-overlay">
-        <div className="glass-panel auth-card animate-slide-up">
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <span className="logo-brand" style={{ justifyContent: 'center', fontSize: '2rem' }}>✦ GlowLink</span>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>
-              Prijavite se da upravljate Vašim salonom
-            </p>
-          </div>
-
-          <form onSubmit={handleLogin}>
-            <div className="form-group">
-              <label className="form-label">Email adresa</label>
-              <input
-                type="email"
-                className="form-input"
-                required
-                placeholder="salon@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Lozinka</label>
-              <input
-                type="password"
-                className="form-input"
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '14px', marginBottom: '12px' }}
-              disabled={authLoading}
-            >
-              {authLoading ? 'Prijavljivanje...' : 'Prijavi se'}
-            </button>
-
-            <button
-              type="button"
-              className="btn btn-secondary"
-              style={{ width: '100%', padding: '14px', marginBottom: '24px' }}
-              onClick={handleSignup}
-              disabled={authLoading}
-            >
-              Registruj se
-            </button>
-
-            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '20px', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Želite samo da isprobate aplikaciju?
-              </p>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                style={{ width: '100%', padding: '12px', background: 'rgba(236, 72, 153, 0.08)', borderColor: 'var(--primary)' }}
-                onClick={() => {
-                  setDemoMode(true)
-                  loadMockData()
-                }}
-              >
-                Vidi Demo mod (bez registracije)
-              </button>
-            </div>
-          </form>
+      <div className="auth-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+          <span className="logo-brand" style={{ justifyContent: 'center', fontSize: '2rem', marginBottom: '16px', display: 'flex' }}>✦ GlowLink</span>
+          <p style={{ fontSize: '0.95rem' }}>Preusmeravanje na prijavu...</p>
         </div>
       </div>
     )
@@ -1385,13 +1327,14 @@ export default function Dashboard() {
           <button
             className="btn btn-secondary"
             style={{ width: '100%', marginTop: '12px', padding: '8px', fontSize: '0.8rem' }}
-            onClick={() => {
+            onClick={async () => {
               if (demoMode) {
                 setDemoMode(false)
                 setSalon(null)
               } else {
-                supabase.auth.signOut()
+                await supabase.auth.signOut()
               }
+              router.push('/auth')
             }}
           >
             Odjavi se
