@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import './auth.css'
 
-type AuthTab = 'login' | 'register'
+type AuthTab = 'login' | 'register' | 'forgot'
 
 export default function AuthPage() {
   const router = useRouter()
@@ -24,6 +24,9 @@ export default function AuthPage() {
   const [regEmail, setRegEmail] = useState('')
   const [regPassword, setRegPassword] = useState('')
   const [regConfirm, setRegConfirm] = useState('')
+
+  // Forgot Password state
+  const [forgotEmail, setForgotEmail] = useState('')
 
   const switchTab = (tab: AuthTab) => {
     setActiveTab(tab)
@@ -50,6 +53,31 @@ export default function AuthPage() {
       }
     } catch {
       setError('Došlo je do greške. Pokušajte ponovo.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSuccess(null)
+    setLoading(true)
+
+    try {
+      const supabase = createClient()
+      const redirectUrl = `${window.location.origin}/auth/update-password`
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: redirectUrl,
+      })
+
+      if (error) {
+        setError(error.message)
+      } else {
+        setSuccess('Uputstvo za resetovanje lozinke je poslato na vaš e-mail! Proverite inboks.')
+      }
+    } catch {
+      setError('Došlo je do greške pri slanju zahteva za resetovanje.')
     } finally {
       setLoading(false)
     }
@@ -165,9 +193,18 @@ export default function AuthPage() {
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="login-password">
-                  Lozinka
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="form-label" htmlFor="login-password">
+                    Lozinka
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => switchTab('forgot')}
+                    style={{ background: 'none', border: 'none', color: '#ec4899', fontSize: '0.8rem', cursor: 'pointer', padding: 0 }}
+                  >
+                    Zaboravili ste lozinku?
+                  </button>
+                </div>
                 <input
                   id="login-password"
                   className="form-input"
@@ -191,6 +228,53 @@ export default function AuthPage() {
                   'Prijavi se'
                 )}
               </button>
+            </form>
+          )}
+
+          {/* Forgot Password Form */}
+          {activeTab === 'forgot' && (
+            <form className="auth-form" onSubmit={handleForgotPassword} key="forgot">
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.5' }}>
+                Unesite vašu email adresu i poslaćemo vam link za resetovanje lozinke.
+              </p>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="forgot-email">
+                  Email adresa
+                </label>
+                <input
+                  id="forgot-email"
+                  className="form-input"
+                  type="email"
+                  placeholder="vas@email.com"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary auth-submit"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="auth-spinner" />
+                ) : (
+                  'Pošalji link za reset'
+                )}
+              </button>
+
+              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => switchTab('login')}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', cursor: 'pointer' }}
+                >
+                  ← Nazad na prijavu
+                </button>
+              </div>
             </form>
           )}
 
