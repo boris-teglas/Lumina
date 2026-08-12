@@ -2992,7 +2992,7 @@ export default function Dashboard() {
                         <div style={{ marginTop: '24px' }}>
                           <a
                             className="btn btn-primary lemonsqueezy-button"
-                            href={demoMode ? '#' : `https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_MONTHLY_VARIANT_ID || 'ea40e779-3ae5-4cc4-abfa-3198bd0cbd13'}?embed=1&checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
+                            href={demoMode ? '#' : `https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_MONTHLY_VARIANT_ID || 'ea40e779-3ae5-4cc4-abfa-3198bd0cbd13'}?embed=1&dark=1&checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
                             style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none', opacity: demoMode ? 0.7 : 1 }}
                             onClick={(e) => {
                               if (demoMode) {
@@ -3035,7 +3035,7 @@ export default function Dashboard() {
                         <div style={{ marginTop: '24px' }}>
                           <a
                             className="btn lemonsqueezy-button"
-                            href={demoMode ? '#' : `https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_YEARLY_VARIANT_ID || '0f6fc52c-7e05-4e50-a838-31a67fd147a8'}?embed=1&checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
+                            href={demoMode ? '#' : `https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_YEARLY_VARIANT_ID || '0f6fc52c-7e05-4e50-a838-31a67fd147a8'}?embed=1&dark=1&checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
                             style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none', background: 'var(--accent-gold)', borderColor: 'var(--accent-gold)', color: '#1c1917', opacity: demoMode ? 0.7 : 1 }}
                             onClick={(e) => {
                               if (demoMode) {
