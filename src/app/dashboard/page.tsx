@@ -19,7 +19,8 @@ import {
   ShieldAlert,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Crown
 } from 'lucide-react'
 import './dashboard.css'
 
@@ -90,6 +91,7 @@ export default function Dashboard() {
   // Selected entities for editing
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [crmNotesText, setCrmNotesText] = useState('')
+  const [clientLoyaltyCard, setClientLoyaltyCard] = useState<{ stamps_count: number; reward_ready: boolean } | null>(null)
 
   // Services form state
   const [newServiceName, setNewServiceName] = useState('')
@@ -543,6 +545,89 @@ export default function Dashboard() {
     }
   }
 
+  // Fetch client loyalty status
+  const fetchClientLoyalty = async (clientId: string, salonId: string) => {
+    try {
+      const { data } = await supabase
+        .from('loyalty_cards')
+        .select('stamps_count, reward_ready')
+        .eq('salon_id', salonId)
+        .eq('client_id', clientId)
+        .maybeSingle()
+
+      if (data) {
+        setClientLoyaltyCard({ stamps_count: data.stamps_count || 0, reward_ready: !!data.reward_ready })
+      } else {
+        setClientLoyaltyCard({ stamps_count: 0, reward_ready: false })
+      }
+    } catch (e) {
+      setClientLoyaltyCard({ stamps_count: 0, reward_ready: false })
+    }
+  }
+
+  // Add manual stamp to client loyalty card
+  const handleAddStamp = async () => {
+    if (!selectedClient || !salon?.id) return
+    const req = salon.loyalty_stamps_required || 5
+    const currentStamps = clientLoyaltyCard?.stamps_count || 0
+    const nextStamps = currentStamps + 1
+    const isReady = nextStamps >= req
+
+    if (demoMode) {
+      setClientLoyaltyCard({ stamps_count: nextStamps, reward_ready: isReady })
+      alert(`Pečat uspešno dodat u Demo modu! Status: ${nextStamps}/${req}`)
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('loyalty_cards')
+        .upsert({
+          salon_id: salon.id,
+          client_id: selectedClient.id,
+          stamps_count: nextStamps,
+          reward_ready: isReady,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'salon_id,client_id' })
+
+      if (error) throw error
+      setClientLoyaltyCard({ stamps_count: nextStamps, reward_ready: isReady })
+      alert(`Dodat novi pečat klijentkinji ${selectedClient.full_name}! (${nextStamps}/${req})`)
+    } catch (e: any) {
+      alert('Greška pri dodavanju pečata: ' + e.message)
+    }
+  }
+
+  // Reset client loyalty card (Claim Reward)
+  const handleResetLoyalty = async () => {
+    if (!selectedClient || !salon?.id) return
+    if (!confirm(`Da li ste sigurni da želite da iskoristite nagradu i resetujete pečate klijentkinji ${selectedClient.full_name}?`)) return
+
+    if (demoMode) {
+      setClientLoyaltyCard({ stamps_count: 0, reward_ready: false })
+      alert('Pečati resetovani (Demo)!')
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('loyalty_cards')
+        .upsert({
+          salon_id: salon.id,
+          client_id: selectedClient.id,
+          stamps_count: 0,
+          reward_ready: false,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'salon_id,client_id' })
+
+      if (error) throw error
+      setClientLoyaltyCard({ stamps_count: 0, reward_ready: false })
+      alert(`Nagrada iskorišćena! Pečati su resetovani na 0.`)
+    } catch (e: any) {
+      alert('Greška pri resetovanju pečata: ' + e.message)
+    }
+  }
+
   // Handle saving salon settings (name, description, theme color, working hours)
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -563,6 +648,10 @@ export default function Dashboard() {
           description: salon.description,
           theme_color: salon.theme_color,
           working_hours: salon.working_hours,
+          loyalty_enabled: salon.loyalty_enabled !== false,
+          loyalty_stamps_required: Number(salon.loyalty_stamps_required || 5),
+          loyalty_reward_type: salon.loyalty_reward_type || 'free_service',
+          loyalty_reward_value: salon.loyalty_reward_value || 'Gratis tretman po izboru',
         })
         .eq('id', salon.id)
 
@@ -2284,6 +2373,7 @@ export default function Dashboard() {
                       onClick={() => {
                         setSelectedClient(c)
                         setCrmNotesText(c.notes || '')
+                        if (salon?.id) fetchClientLoyalty(c.id, salon.id)
                       }}
                       style={{ cursor: 'pointer', background: selectedClient?.id === c.id ? 'rgba(255,255,255,0.03)' : '' }}
                     >
@@ -2338,13 +2428,50 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  <button className="btn btn-primary" onClick={saveCrmNotes}>
+                  {/* Loyalty Card Management Box */}
+                  <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', marginTop: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Crown size={16} /> Digitalna Loyalty Kartica
+                      </span>
+                      <span className="badge" style={{ background: clientLoyaltyCard?.reward_ready ? 'rgba(74, 222, 128, 0.15)' : 'rgba(255, 255, 255, 0.05)', color: clientLoyaltyCard?.reward_ready ? '#4ade80' : 'var(--text-muted)' }}>
+                        {clientLoyaltyCard?.reward_ready ? '🎁 Nagrada Spremna!' : `${clientLoyaltyCard?.stamps_count || 0}/${salon?.loyalty_stamps_required || 5} Pečata`}
+                      </span>
+                    </div>
+
+                    {clientLoyaltyCard?.reward_ready && (
+                      <div style={{ background: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8rem', color: '#4ade80', fontWeight: 'bold', marginBottom: '12px' }}>
+                        🎉 Nagrada za klijentkinju: {salon?.loyalty_reward_value || 'Gratis tretman po izboru'}!
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                      <button
+                        className="btn btn-secondary"
+                        type="button"
+                        style={{ flex: 1, padding: '8px', fontSize: '0.75rem', gap: '4px' }}
+                        onClick={handleAddStamp}
+                      >
+                        + Dodaj Pečat (+1)
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        type="button"
+                        style={{ flex: 1, padding: '8px', fontSize: '0.75rem', color: 'var(--accent-gold)', borderColor: 'rgba(212, 175, 55, 0.3)' }}
+                        onClick={handleResetLoyalty}
+                      >
+                        🎁 Iskoristi / Resetuj
+                      </button>
+                    </div>
+                  </div>
+
+                  <button className="btn btn-primary" style={{ marginTop: '16px' }} onClick={saveCrmNotes}>
                     Sačuvaj belešku
                   </button>
 
                   <button
                     className={`btn ${selectedClient.is_blacklisted ? 'btn-secondary' : 'btn-secondary'}`}
-                    style={{ borderColor: selectedClient.is_blacklisted ? 'var(--success)' : 'var(--danger)', color: selectedClient.is_blacklisted ? 'var(--success)' : 'var(--danger)' }}
+                    style={{ borderColor: selectedClient.is_blacklisted ? 'var(--success)' : 'var(--danger)', color: selectedClient.is_blacklisted ? 'var(--success)' : 'var(--danger)', marginTop: '8px' }}
                     onClick={() => toggleBlacklistClient(selectedClient)}
                   >
                     {selectedClient.is_blacklisted ? '✓ Skloni sa Crne Liste' : '⚠️ Stavi na Crnu Listu'}
@@ -2789,6 +2916,86 @@ export default function Dashboard() {
                   />
                   <span style={{ fontSize: '0.9rem' }}>{salon?.theme_color || '#ec4899'}</span>
                 </div>
+              </div>
+
+              {/* Digital Loyalty Program Configuration */}
+              <div className="form-group" style={{ marginTop: '28px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                  <label className="form-label" style={{ fontSize: '1.05rem', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Crown size={20} style={{ color: 'var(--accent-gold)' }} /> Digitalni Loyalty Program Klijenata
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem', color: salon?.loyalty_enabled !== false ? 'var(--primary)' : 'var(--text-muted)' }}>
+                    <input
+                      type="checkbox"
+                      checked={salon?.loyalty_enabled !== false}
+                      onChange={(e) => setSalon({ ...salon, loyalty_enabled: e.target.checked })}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    {salon?.loyalty_enabled !== false ? 'Program Aktivan' : 'Program Isključen'}
+                  </label>
+                </div>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '16px' }}>
+                  Podesite nagradni sistem lojalnosti. Klijenti će automatski skupljati pečate pri svakom uspešnom zakazivanju na Vašem linku.
+                </p>
+
+                {salon?.loyalty_enabled !== false && (
+                  <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                      <div>
+                        <label className="form-label" style={{ fontSize: '0.85rem' }}>Potreban broj poseta do nagrade</label>
+                        <select
+                          className="form-input"
+                          value={salon?.loyalty_stamps_required || 5}
+                          onChange={(e) => setSalon({ ...salon, loyalty_stamps_required: Number(e.target.value) })}
+                        >
+                          <option value={3}>3 posete (Brza nagrada)</option>
+                          <option value={5}>5 poseta (Standardno)</option>
+                          <option value={8}>8 poseta</option>
+                          <option value={10}>10 poseta (Premium)</option>
+                          <option value={12}>12 poseta</option>
+                          <option value={15}>15 poseta</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="form-label" style={{ fontSize: '0.85rem' }}>Vrsta nagrade</label>
+                        <select
+                          className="form-input"
+                          value={salon?.loyalty_reward_type || 'free_service'}
+                          onChange={(e) => {
+                            const type = e.target.value
+                            let defaultVal = salon?.loyalty_reward_value || ''
+                            if (type === 'free_service') defaultVal = 'Gratis tretman po izboru'
+                            if (type === 'discount_percent') defaultVal = '20% popusta na sledeći tretman'
+                            if (type === 'discount_fixed') defaultVal = '500 RSD popusta'
+                            setSalon({ ...salon, loyalty_reward_type: type, loyalty_reward_value: defaultVal })
+                          }}
+                        >
+                          <option value="free_service">🎁 Besplatan / Gratis tretman</option>
+                          <option value="discount_percent">🏷️ Popust u procentima (%)</option>
+                          <option value="discount_fixed">💵 Fiksni popust u dinarima (RSD)</option>
+                          <option value="custom">✦ Prilagođena nagrada / poklon</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Tekstualni opis nagrade (Šta klijent dobija)</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Npr. Gratis tretman po izboru ili 50% popusta..."
+                        value={salon?.loyalty_reward_value || ''}
+                        onChange={(e) => setSalon({ ...salon, loyalty_reward_value: e.target.value })}
+                      />
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                        Ovaj tekst će klijenti videti u svojoj virtuelnoj loyalty kartici nakon zakazivanja.
+                      </span>
+                    </div>
+
+                  </div>
+                )}
               </div>
 
               {/* Working Hours configuration */}

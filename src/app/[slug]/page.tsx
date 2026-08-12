@@ -516,6 +516,37 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
       setBookedAppointment(appointmentData)
       setPendingApproval(blockNeedsApproval)
 
+      // 3.5 Update loyalty card for client
+      if ((salon as any)?.loyalty_enabled !== false) {
+        try {
+          const reqStamps = Number((salon as any)?.loyalty_stamps_required || 5)
+          const { data: existingCard } = await supabase
+            .from('loyalty_cards')
+            .select('stamps_count')
+            .eq('salon_id', salon.id)
+            .eq('client_id', clientData.id)
+            .maybeSingle()
+
+          const currentStamps = existingCard?.stamps_count || 0
+          const newCount = currentStamps + 1
+          const isReady = newCount >= reqStamps
+
+          await supabase
+            .from('loyalty_cards')
+            .upsert({
+              salon_id: salon.id,
+              client_id: clientData.id,
+              stamps_count: newCount,
+              reward_ready: isReady,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'salon_id,client_id' })
+
+          setLoyaltyCard({ stamps_count: newCount, reward_ready: isReady })
+        } catch (loyaltyErr) {
+          console.warn('Failed to update loyalty stamps:', loyaltyErr)
+        }
+      }
+
       // Send Email notification asynchronously
       try {
         await fetch('/api/send-email', {
@@ -665,29 +696,33 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
             )}
           </p>
 
-          {loyaltyCard && (
-            <div className="loyalty-widget" style={{ textAlign: 'left', maxWidth: '400px', margin: '0 auto 24px auto' }}>
-              <div className="loyalty-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Crown size={18} style={{ color: 'var(--accent-gold)' }} /> Vaš Loyalty Status u salonu
+          {(salon as any)?.loyalty_enabled !== false && loyaltyCard && (() => {
+            const reqStamps = Number((salon as any)?.loyalty_stamps_required || 5)
+            const rewardVal = (salon as any)?.loyalty_reward_value || 'Gratis tretman po izboru'
+            return (
+              <div className="loyalty-widget" style={{ textAlign: 'left', maxWidth: '400px', margin: '0 auto 24px auto' }}>
+                <div className="loyalty-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Crown size={18} style={{ color: 'var(--accent-gold)' }} /> Vaš Loyalty Status u salonu
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  {loyaltyCard.reward_ready 
+                    ? `🎉 Čestitamo! Sledeća poseta je Vaša nagrada: ${rewardVal}!` 
+                    : `Još ${Math.max(0, reqStamps - loyaltyCard.stamps_count)} poseta do nagrade (${rewardVal})!`}
+                </p>
+                <div className="stamps-row" style={{ flexWrap: 'wrap', gap: '8px' }}>
+                  {Array.from({ length: reqStamps }, (_, i) => i + 1).map((s) => {
+                    const isActive = s <= loyaltyCard.stamps_count
+                    const isLast = s === reqStamps
+                    return (
+                      <div key={s} className={`stamp-circle ${isActive ? 'active' : ''}`}>
+                        {isLast ? '🎁' : '★'}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                {loyaltyCard.reward_ready 
-                  ? 'Čestitamo! Sledeća poseta je Vaša besplatna usluga/nagrada!' 
-                  : `Još ${5 - loyaltyCard.stamps_count} poseta do besplatne usluge!`}
-              </p>
-              <div className="stamps-row">
-                {[1, 2, 3, 4, 5].map((s) => {
-                  const isActive = s <= loyaltyCard.stamps_count
-                  const isLast = s === 5
-                  return (
-                    <div key={s} className={`stamp-circle ${isActive ? 'active' : ''}`}>
-                      {isLast ? '🎁' : '★'}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+            )
+          })()}
 
           <button className="btn btn-primary" onClick={() => window.location.reload()}>
             Nazad na zakazivanje
@@ -1002,25 +1037,29 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
           </div>
 
           {/* CRM Loyalty check indicator */}
-          {clientPhone.length >= 9 && (
-            <div className="animate-fade-in" style={{ marginBottom: '16px' }}>
-              {checkingLoyalty ? (
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Provera loyalty statusa...</p>
-              ) : loyaltyCard ? (
-                <div className="loyalty-widget" style={{ padding: '12px', marginTop: '8px' }}>
-                  <div className="loyalty-title" style={{ fontSize: '0.9rem', marginBottom: '4px' }}>
-                    <span>★</span> Prepoznat klijent! Vaš Loyalty status:
+          {(salon as any)?.loyalty_enabled !== false && clientPhone.length >= 9 && (() => {
+            const reqStamps = Number((salon as any)?.loyalty_stamps_required || 5)
+            const rewardVal = (salon as any)?.loyalty_reward_value || 'Gratis tretman po izboru'
+            return (
+              <div className="animate-fade-in" style={{ marginBottom: '16px' }}>
+                {checkingLoyalty ? (
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Provera loyalty statusa...</p>
+                ) : loyaltyCard ? (
+                  <div className="loyalty-widget" style={{ padding: '12px', marginTop: '8px' }}>
+                    <div className="loyalty-title" style={{ fontSize: '0.9rem', marginBottom: '4px' }}>
+                      <span>★</span> Prepoznat klijent! Vaš Loyalty status:
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      Skupljeno {loyaltyCard.stamps_count}/{reqStamps} pečata.{' '}
+                      {loyaltyCard.reward_ready 
+                        ? `🎉 Poklon/popust spreman: ${rewardVal}!` 
+                        : `Još ${Math.max(0, reqStamps - loyaltyCard.stamps_count)} dolazaka do nagrade (${rewardVal}).`}
+                    </p>
                   </div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    Skupljeno {loyaltyCard.stamps_count}/5 pečata.{' '}
-                    {loyaltyCard.reward_ready 
-                      ? 'Poklon/popust spreman za ovaj termin!' 
-                      : `Još ${5 - loyaltyCard.stamps_count} dolazaka do nagrade.`}
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          )}
+                ) : null}
+              </div>
+            )
+          })()}
 
           {/* Silent Appointment Option */}
           <label className="silent-checkbox-wrapper">
