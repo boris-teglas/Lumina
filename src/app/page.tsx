@@ -65,14 +65,14 @@ export default function Home() {
           </p>
 
           {/* Primary Action Buttons (Inverted Hierarchy for max conversion) */}
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
-            <Link href="/jelena-nokti" className="btn btn-primary" style={{ padding: '16px 36px', fontSize: '1.1rem', fontWeight: 'bold', boxShadow: '0 8px 24px rgba(236, 72, 153, 0.35)' }}>
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginBottom: '16px' }}>
+            <Link href="/jelena-nokti" className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '1.05rem', fontWeight: 'bold', boxShadow: '0 8px 24px rgba(236, 72, 153, 0.35)' }}>
               Isprobaj Demo Booking 🌸
             </Link>
-            <Link href="/dashboard?demo=true" className="btn btn-secondary" style={{ padding: '16px 28px', fontSize: '1.05rem', fontWeight: 600 }}>
+            <Link href="/dashboard?demo=true" className="btn btn-secondary" style={{ padding: '16px 26px', fontSize: '1rem', fontWeight: 600 }}>
               Isprobaj Demo Nadzornu Tablu 📊
             </Link>
-            <Link href="/auth" className="btn" style={{ padding: '16px 24px', fontSize: '1rem', color: 'var(--text-secondary)', textDecoration: 'underline', background: 'none', border: 'none' }}>
+            <Link href="/auth" className="btn btn-secondary" style={{ padding: '16px 24px', fontSize: '1rem', fontWeight: 600, background: 'rgba(255, 255, 255, 0.04)', borderColor: 'rgba(255, 255, 255, 0.15)', color: '#f8fafc' }}>
               Započni besplatno 🚀
             </Link>
           </div>
