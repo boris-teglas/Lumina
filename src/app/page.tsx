@@ -34,7 +34,10 @@ export default function Home() {
           <Link href="/" className="logo-brand" style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit' }}>
             ✦ GlowLink
           </Link>
-          <div className="nav-buttons-container" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="nav-buttons-container" style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <a href="#pricing" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600, marginRight: '8px' }}>
+              Cenovnik
+            </a>
             <Link href="/auth" className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
               Prijavi se
             </Link>
@@ -120,6 +123,76 @@ export default function Home() {
                 Flaguj nepouzdane klijente koji otkazuju u zadnji čas. Sledeći put kada pokušaju da zakažu, sistem stavlja njihov termin na čekanje kako bi ih ti ručno odobrila (i zatražila depozit).
               </p>
             </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="container" style={{ padding: '60px 24px 80px 24px', borderTop: '1px solid var(--border-color)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <span className="badge badge-success" style={{ marginBottom: '12px', background: 'rgba(236, 72, 153, 0.1)', color: 'var(--primary)' }}>
+              TRANSPARENTNE CENE 💳
+            </span>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '12px' }}>Izaberite plan po vašoj meri</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>
+              Započnite sa 14 dana besplatnog probnog perioda. Bez platne kartice unapred i bez skrivenih troškova.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', maxWidth: '900px', margin: '0 auto' }}>
+            
+            {/* Monthly Card */}
+            <div className="glass-panel" style={{ padding: '36px 28px', borderRadius: '20px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', transition: 'transform 0.3s ease' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.4rem' }}>Mesečni Paket</h3>
+                  <span className="badge" style={{ background: 'rgba(236, 72, 153, 0.1)', color: 'var(--primary)', fontWeight: 'bold' }}>Mesečno</span>
+                </div>
+                <div style={{ marginBottom: '24px' }}>
+                  <span style={{ fontSize: '2.5rem', fontWeight: 800, color: '#ffffff' }}>2.000 RSD</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}> / mesec</span>
+                </div>
+                <ul style={{ paddingLeft: '0', listStyle: 'none', margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Neograničen broj klijenata i zakazivanja</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Personalizovan Instagram Link-in-bio</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Instagram Story Generator za slobodne slotove</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Digitalni Loyalty kartoni sa pečatima</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> Pametna Lista Čekanja i Zaštitna Crna Lista</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✓</span> E-mail obaveštenja klijentima i salonu</li>
+                </ul>
+              </div>
+              <Link href="/auth" className="btn btn-primary" style={{ width: '100%', padding: '14px', textAlign: 'center', fontWeight: 'bold', fontSize: '1rem' }}>
+                Započni 14 dana besplatno 🚀
+              </Link>
+            </div>
+
+            {/* Yearly Card */}
+            <div className="glass-panel" style={{ padding: '36px 28px', borderRadius: '20px', border: '2px solid var(--accent-gold)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', background: 'rgba(212, 175, 55, 0.03)' }}>
+              <div style={{ position: 'absolute', top: '-14px', right: '28px', background: 'var(--accent-gold)', color: '#1c1917', fontSize: '0.8rem', fontWeight: 800, padding: '4px 14px', borderRadius: '20px', textTransform: 'uppercase', boxShadow: '0 4px 16px rgba(212,175,55,0.4)' }}>
+                Ušteda 2 meseca GRATIS 🎁
+              </div>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.4rem', color: 'var(--accent-gold)' }}>Godišnji Paket</h3>
+                  <span className="badge" style={{ background: 'rgba(212, 175, 55, 0.15)', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Najpopularnije</span>
+                </div>
+                <div style={{ marginBottom: '24px' }}>
+                  <span style={{ fontSize: '2.5rem', fontWeight: 800, color: '#ffffff' }}>18.000 RSD</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}> / godina</span>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 600, marginTop: '4px' }}>Samo 1.500 RSD mesečno (Ušteda 6.000 RSD)</div>
+                </div>
+                <ul style={{ paddingLeft: '0', listStyle: 'none', margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>✓</span> <strong>Sve iz mesečnog paketa</strong></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>✓</span> <strong>2 meseca plaćanja potpunosti GRATIS</strong></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>✓</span> Prioritetna VIP podrška 24/7</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>✓</span> Besplatna pomoć pri podešavanju naloga</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>✓</span> Zagarancija fiksne cene (bez poskupljenja)</li>
+                </ul>
+              </div>
+              <Link href="/auth" className="btn" style={{ width: '100%', padding: '14px', textAlign: 'center', fontWeight: 'bold', fontSize: '1rem', background: 'var(--accent-gold)', color: '#1c1917', border: 'none' }}>
+                Započni godišnji plan 👑
+              </Link>
+            </div>
+
           </div>
         </section>
 
