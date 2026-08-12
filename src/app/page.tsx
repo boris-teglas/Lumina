@@ -34,15 +34,18 @@ export default function Home() {
           <Link href="/" className="logo-brand" style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit' }}>
             ✦ GlowLink
           </Link>
-          <div className="nav-buttons-container" style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="nav-buttons-container" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
             <a href="#pricing" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600, marginRight: '8px' }}>
               Cenovnik
             </a>
-            <Link href="/auth" className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+            <Link href="/auth" className="btn btn-secondary" style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
               Prijavi se
             </Link>
+            <Link href="/dashboard?demo=true" className="btn btn-secondary" style={{ padding: '8px 14px', fontSize: '0.85rem', borderColor: 'rgba(236, 72, 153, 0.4)' }}>
+              Demo Nadzorna Tabla 📊
+            </Link>
             <Link href="/jelena-nokti" className="btn btn-primary nav-demo-btn" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
-              Vidi Demo Booking
+              Demo Booking 🌸
             </Link>
           </div>
         </div>
@@ -50,7 +53,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <main style={{ flex: 1 }}>
-        <section className="container animate-fade-in" style={{ padding: '80px 24px', textAlign: 'center' }}>
+        <section className="container animate-fade-in" style={{ padding: '70px 24px', textAlign: 'center' }}>
           <span className="badge badge-success" style={{ marginBottom: '16px', background: 'rgba(236, 72, 153, 0.1)', color: 'var(--primary)' }}>
             Nova era zakazivanja za salone lepote 🚀
           </span>
@@ -61,13 +64,26 @@ export default function Home() {
             Baci svesku i olovku. GlowLink ti pruža izolovani link za tvoj Instagram bio, pametan kalendar, digitalni loyalty program i zaštitu od no-show klijenata.
           </p>
 
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/auth" className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>
-              Započni besplatno
+          {/* Primary Action Buttons (Inverted Hierarchy for max conversion) */}
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+            <Link href="/jelena-nokti" className="btn btn-primary" style={{ padding: '16px 36px', fontSize: '1.1rem', fontWeight: 'bold', boxShadow: '0 8px 24px rgba(236, 72, 153, 0.35)' }}>
+              Isprobaj Demo Booking 🌸
             </Link>
-            <Link href="/jelena-nokti" className="btn btn-secondary" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>
-              Isprobaj Demo Booking ↗
+            <Link href="/dashboard?demo=true" className="btn btn-secondary" style={{ padding: '16px 28px', fontSize: '1.05rem', fontWeight: 600 }}>
+              Isprobaj Demo Nadzornu Tablu 📊
             </Link>
+            <Link href="/auth" className="btn" style={{ padding: '16px 24px', fontSize: '1rem', color: 'var(--text-secondary)', textDecoration: 'underline', background: 'none', border: 'none' }}>
+              Započni besplatno 🚀
+            </Link>
+          </div>
+
+          {/* Micro-copy encouraging friction-free exploration */}
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>⚡ Bez registracije</span>
+            <span>•</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>⏱ Instant pristup za 10 sekundi</span>
+            <span>•</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>💳 Nije potrebna kartica</span>
           </div>
         </section>
 
