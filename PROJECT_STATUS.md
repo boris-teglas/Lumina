@@ -77,11 +77,10 @@ Svih 9 tabela u `public` šemi imaju omogućen **Row Level Security (RLS)** (`rl
 * Webhook Callback URL: `https://glowlink.me/api/webhooks/lemonsqueezy`.
 * Automatsko prebacivanje statusa u `active` i produžavanje roka pretplate u Supabase bazi.
 
-### 6. Domen i DNS Podešavanja
-* Registrovan domen `glowlink.me` (Namecheap for Education).
-* A Record: `@` $\rightarrow$ `216.198.79.1`
-* CNAME Record: `www` $\rightarrow$ `522c6ffb36129157.vercel-dns-017.com.`
-* Vercel HTTPS SSL sertifikat je generisan i aktivan.
+### 7. Pravne Stranice & GDPR Usaglašenost
+* **Politika Privatnosti (`/privacy`):** Detaljno objašnjenje prikupljanja podataka (ime, email, telefon), svrhe obrade, bezbednosti i pravnih osnova u skladu sa GDPR i Zakonom o zaštiti podataka o ličnosti RS.
+* **Uslovi Korišćenja (`/terms`):** Pravna pravila korišćenja platforme, pravila pretplate, otkazivanja i ograničenja odgovornosti (neophodno za merchant verifikaciju na Lemon Squeezy-ju).
+* Povezani linkovi u podnožju (Footer) početne stranice i ekrana za prijavu.
 
 ### 7. Resend E-mail Automatizacija (`/api/send-email`)
 * Verifikovan domen `glowlink.me` na Resend servisu preko Namecheap DNS zapisa (DKIM, SPF MX, SPF TXT, DMARC).

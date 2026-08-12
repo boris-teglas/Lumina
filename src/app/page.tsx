@@ -162,11 +162,76 @@ export default function Home() {
               <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', color: '#ef4444' }}>
                 <ShieldAlert size={28} />
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Zaštitna Crna Lista</h3>
-              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                Flaguj nepouzdane klijente koji otkazuju u zadnji čas. Sledeći put kada pokušaju da zakažu, sistem stavlja njihov termin na čekanje kako bi ih ti ručno odobrila (i zatražila depozit).
-              </p>
             </div>
+          </div>
+        </section>
+
+        {/* Time & Money Savings Comparison Section */}
+        <section className="container" style={{ padding: '60px 24px 40px 24px', borderTop: '1px solid var(--border-color)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <span className="badge badge-success" style={{ marginBottom: '12px', background: 'rgba(236, 72, 153, 0.1)', color: 'var(--primary)', gap: '6px' }}>
+              <Hourglass size={14} /> POREĐENJE I UŠTEDA
+            </span>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '12px' }}>Koliko vremena i novca gubite bez automatizacije?</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '650px', margin: '0 auto' }}>
+              Pogledajte razliku između ručnog zakazivanja preko poruka i automatizovanog GlowLink sistema.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', maxWidth: '1000px', margin: '0 auto 48px auto' }}>
+            
+            {/* Without GlowLink Card */}
+            <div className="glass-panel" style={{ padding: '32px', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.02)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', color: '#ef4444', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>❌</span> Ručno zakazivanje (Poruke & Sveska)
+              </div>
+              <ul style={{ paddingLeft: '0', listStyle: 'none', margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}><span style={{ color: '#ef4444', fontWeight: 'bold' }}>✕</span> <strong>60+ sati mesečno</strong> utrošenih na kuckanje poruka uveče.</li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}><span style={{ color: '#ef4444', fontWeight: 'bold' }}>✕</span> <strong>20.000+ RSD mesečnog gubitka</strong> jer klijentkinje zakažu pa se ne pojave.</li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}><span style={{ color: '#ef4444', fontWeight: 'bold' }}>✕</span> Stres i prekidanje rada tokom tretmana odgovorom na telefon.</li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}><span style={{ color: '#ef4444', fontWeight: 'bold' }}>✕</span> Gubitak slobodnih termina kada klijent otkaže u zadnji čas.</li>
+              </ul>
+              
+              {/* Visual Bar */}
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '8px', color: '#ef4444', fontWeight: 'bold' }}>
+                  <span>Utrošeno vreme na obaveze:</span>
+                  <span>60h / mesec</span>
+                </div>
+                <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '5px', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', height: '100%', background: '#ef4444' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* With GlowLink Card */}
+            <div className="glass-panel" style={{ padding: '32px', borderRadius: '20px', border: '2px solid var(--primary)', background: 'rgba(236, 72, 153, 0.03)', boxShadow: '0 8px 32px rgba(236, 72, 153, 0.15)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>✨</span> Sa GlowLink sistemom (66 RSD/dan)
+              </div>
+              <ul style={{ paddingLeft: '0', listStyle: 'none', margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '2px' }} /> <strong>0 sati kuckanja</strong> — klijenti sami zakazuju 24/7 preko vašeg linka.</li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '2px' }} /> <strong>0 RSD gubitaka</strong> uz pametnu Listu Čekanja i Zaštitnu Crnu Listu.</li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '2px' }} /> Potpuni mir dok radite bez zvrckanja i prekidanja telefona.</li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '2px' }} /> Automatska E-mail podsećanja i digitalni Loyalty kartoni.</li>
+              </ul>
+              
+              {/* Visual Bar */}
+              <div style={{ background: 'rgba(236, 72, 153, 0.1)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '8px', color: 'var(--primary)', fontWeight: 'bold' }}>
+                  <span>Utrošeno vreme na obaveze:</span>
+                  <span>0h / automatski</span>
+                </div>
+                <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '5px', overflow: 'hidden' }}>
+                  <div style={{ width: '5%', height: '100%', background: 'var(--primary)' }} />
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '20px 24px', textAlign: 'center', maxWidth: '800px', margin: '0 auto', fontSize: '1rem', color: '#ffffff' }}>
+            🎉 <strong>Ukupna neto ušteda:</strong> Dobijate preko <strong>60 sati slobodnog vremena mesečno</strong> za odmor ili 20 dodatnih zakazanih termina!
           </div>
         </section>
 
@@ -191,9 +256,12 @@ export default function Home() {
                   <h3 style={{ margin: 0, fontSize: '1.4rem' }}>Mesečni Paket</h3>
                   <span className="badge" style={{ background: 'rgba(236, 72, 153, 0.1)', color: 'var(--primary)', fontWeight: 'bold' }}>Mesečno</span>
                 </div>
-                <div style={{ marginBottom: '24px' }}>
+                <div style={{ marginBottom: '20px' }}>
                   <span style={{ fontSize: '2.5rem', fontWeight: 800, color: '#ffffff' }}>2.000 RSD</span>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}> / mesec</span>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600, marginTop: '4px' }}>
+                    ☕ Samo 66 RSD dnevno — manje od jedne kafe u kafiću
+                  </div>
                 </div>
                 <ul style={{ paddingLeft: '0', listStyle: 'none', margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} /> Neograničen broj klijenata i zakazivanja</li>
@@ -219,16 +287,19 @@ export default function Home() {
                   <h3 style={{ margin: 0, fontSize: '1.4rem', color: 'var(--accent-gold)' }}>Godišnji Paket</h3>
                   <span className="badge" style={{ background: 'rgba(212, 175, 55, 0.15)', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Najpopularnije</span>
                 </div>
-                <div style={{ marginBottom: '24px' }}>
+                <div style={{ marginBottom: '20px' }}>
                   <span style={{ fontSize: '2.5rem', fontWeight: 800, color: '#ffffff' }}>18.000 RSD</span>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}> / godina</span>
                   <div style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 600, marginTop: '4px' }}>Samo 1.500 RSD mesečno (Ušteda 6.000 RSD)</div>
+                  <div style={{ fontSize: '0.8rem', color: '#4ade80', fontWeight: 600, marginTop: '6px', background: 'rgba(74, 222, 128, 0.1)', padding: '6px 10px', borderRadius: '6px', display: 'inline-block' }}>
+                    🎁 GRATIS podešavanje naloga: Mi unosimo vaše usluge za 5 min!
+                  </div>
                 </div>
                 <ul style={{ paddingLeft: '0', listStyle: 'none', margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> <strong>Sve iz mesečnog paketa</strong></li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> <strong>2 meseca plaćanja potpunosti GRATIS</strong></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> <strong>2 meseca plaćanja u potpunosti GRATIS</strong></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> 🎁 <strong>White-Glove podrška:</strong> Mi unosimo cene i usluge za 5 min</li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> Prioritetna VIP podrška 24/7</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> Besplatna pomoć pri podešavanju naloga</li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> Garancija fiksne cene (bez poskupljenja)</li>
                 </ul>
               </div>
