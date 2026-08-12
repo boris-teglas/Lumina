@@ -162,6 +162,10 @@ export default function Home() {
               <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', color: '#ef4444' }}>
                 <ShieldAlert size={28} />
               </div>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Zaštitna Crna Lista</h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                Flaguj nepouzdane klijente koji otkazuju u zadnji čas. Sledeći put kada pokušaju da zakažu, sistem stavlja njihov termin na čekanje kako bi ih ti ručno odobrila (i zatražila depozit).
+              </p>
             </div>
           </div>
         </section>
