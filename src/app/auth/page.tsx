@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
+import { Sparkles } from 'lucide-react'
 import './auth.css'
 
 type AuthTab = 'login' | 'register' | 'forgot'
@@ -148,7 +149,9 @@ export default function AuthPage() {
       <div className="auth-glass-card">
         {/* Logo */}
         <div className="auth-logo">
-          <div className="auth-logo-text">✦ GlowLink</div>
+          <div className="auth-logo-text" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <Sparkles size={24} style={{ color: 'var(--primary)' }} /> GlowLink
+          </div>
           <p className="auth-tagline">Pametan booking za salone lepote</p>
         </div>
 

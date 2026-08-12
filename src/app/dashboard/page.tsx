@@ -4,6 +4,23 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Script from 'next/script'
 import { createClient } from '@/utils/supabase/client'
+import { 
+  BarChart3, 
+  CalendarDays, 
+  Users, 
+  Scissors, 
+  Star, 
+  Camera, 
+  Settings, 
+  CreditCard,
+  Sparkles,
+  LogOut,
+  ExternalLink,
+  ShieldAlert,
+  Clock,
+  CheckCircle2,
+  AlertCircle
+} from 'lucide-react'
 import './dashboard.css'
 
 interface Service {
@@ -1286,14 +1303,16 @@ export default function Dashboard() {
           <li
             className={`nav-item ${activeTab === 'stats' ? 'active' : ''}`}
             onClick={() => { setActiveTab('stats'); setIsMobileMenuOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
           >
-            📊 Mesečna statistika
+            <BarChart3 size={18} style={{ color: activeTab === 'stats' ? 'var(--primary)' : 'var(--text-muted)' }} /> Mesečna statistika
           </li>
           <li
             className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`}
             onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
           >
-            📅 Kalendar & Termini
+            <CalendarDays size={18} style={{ color: activeTab === 'calendar' ? 'var(--primary)' : 'var(--text-muted)' }} /> Kalendar & Termini
             {pendingCount > 0 && (
               <span className="badge badge-danger" style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>
                 {pendingCount}
@@ -1303,38 +1322,44 @@ export default function Dashboard() {
           <li
             className={`nav-item ${activeTab === 'crm' ? 'active' : ''}`}
             onClick={() => { setActiveTab('crm'); setIsMobileMenuOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
           >
-            👥 Mini CRM (Klijenti)
+            <Users size={18} style={{ color: activeTab === 'crm' ? 'var(--primary)' : 'var(--text-muted)' }} /> Mini CRM (Klijenti)
           </li>
           <li
             className={`nav-item ${activeTab === 'services' ? 'active' : ''}`}
             onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
           >
-            💇‍♀️ Upravljanje Uslugama
+            <Scissors size={18} style={{ color: activeTab === 'services' ? 'var(--primary)' : 'var(--text-muted)' }} /> Upravljanje Uslugama
           </li>
           <li
             className={`nav-item ${activeTab === 'reviews' ? 'active' : ''}`}
             onClick={() => { setActiveTab('reviews'); setIsMobileMenuOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
           >
-            ⭐ Ocene & Utisci
+            <Star size={18} style={{ color: activeTab === 'reviews' ? 'var(--accent-gold)' : 'var(--text-muted)' }} /> Ocene & Utisci
           </li>
           <li
             className={`nav-item ${activeTab === 'story' ? 'active' : ''}`}
             onClick={() => { setActiveTab('story'); setIsMobileMenuOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
           >
-            📱 Instagram Story
+            <Camera size={18} style={{ color: activeTab === 'story' ? 'var(--primary)' : 'var(--text-muted)' }} /> Instagram Story
           </li>
           <li
             className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
           >
-            ⚙ Podešavanja
+            <Settings size={18} style={{ color: activeTab === 'settings' ? 'var(--primary)' : 'var(--text-muted)' }} /> Podešavanja
           </li>
           <li
             className={`nav-item ${activeTab === 'billing' ? 'active' : ''}`}
             onClick={() => { setActiveTab('billing'); setIsMobileMenuOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
           >
-            💳 Pretplata & Račun
+            <CreditCard size={18} style={{ color: activeTab === 'billing' ? 'var(--primary)' : 'var(--text-muted)' }} /> Pretplata & Račun
           </li>
         </ul>
 

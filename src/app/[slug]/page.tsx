@@ -2,6 +2,19 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { 
+  Sparkles, 
+  Calendar, 
+  Clock, 
+  CheckCircle2, 
+  Crown, 
+  Award, 
+  Star, 
+  VolumeX, 
+  Heart,
+  ChevronRight,
+  ShieldCheck
+} from 'lucide-react'
 import './booking.css'
 
 interface Service {
@@ -600,7 +613,9 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
     return (
       <div className="booking-container flex-center" style={{ minHeight: '80vh' }}>
         <div style={{ textAlign: 'center' }}>
-          <div className="success-icon" style={{ animation: 'float 1.5s ease-in-out infinite', color: 'var(--primary)' }}>✦</div>
+          <div className="success-icon" style={{ animation: 'float 1.5s ease-in-out infinite', color: 'var(--primary)' }}>
+            <Sparkles size={48} />
+          </div>
           <h3>Učitavanje salona...</h3>
         </div>
       </div>
@@ -624,7 +639,9 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
     return (
       <div className="booking-container">
         <div className="glass-panel success-screen animate-slide-up">
-          <span className="success-icon">{pendingApproval ? '✉' : '✓'}</span>
+          <span className="success-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            {pendingApproval ? <Clock size={48} style={{ color: 'var(--warning)' }} /> : <CheckCircle2 size={48} style={{ color: 'var(--success)' }} />}
+          </span>
           <h2 className="success-title">
             {pendingApproval ? 'Zahtev je poslat!' : 'Termin uspešno rezervisan!'}
           </h2>
@@ -650,8 +667,8 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
 
           {loyaltyCard && (
             <div className="loyalty-widget" style={{ textAlign: 'left', maxWidth: '400px', margin: '0 auto 24px auto' }}>
-              <div className="loyalty-title">
-                <span>✦</span> Vaš Loyalty Status u salonu
+              <div className="loyalty-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Crown size={18} style={{ color: 'var(--accent-gold)' }} /> Vaš Loyalty Status u salonu
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 {loyaltyCard.reward_ready 
