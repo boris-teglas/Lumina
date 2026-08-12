@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "GlowLink | Pametan booking i CRM za salone lepote",
-  description: "Digitalni loyalty programi, automatski Instagram Story termini, mini CRM karton klijenta i zaštitna lista čekanja za salone lepote.",
+  description: "Automatski Instagram Story termini, mini CRM karton klijenta, pametna lista čekanja i zaštitna crna lista za salone lepote.",
 };
 
 export default function RootLayout({

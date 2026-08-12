@@ -63,6 +63,7 @@ Svih 9 tabela u `public` šemi imaju omogućen **Row Level Security (RLS)** (`rl
 * Mini CRM baza klijenata sa privatnim zabeleškama.
 * Instagram Story Generator (izvoz slika slobodnih termina).
 * Ocene & Utisci klijenata.
+* **Podešavanja Salona & Digitalni Loyalty Program:** Potpuna kontrola nad sistemom lojalnosti – vlasnica salona sada može uključiti/isključiti program, sama odabrati broj potrebnih pečata (3, 5, 8, 10, 15 poseta) i uneti sopstveni opis nagrade (gratis tretman, popust u % ili fiksni RSD popust). U CRM-u vlasnica ima ručne kontrole za dodavanje pečata (+1) i resetovanje nagrade.
 * **Pretplata & Račun:** Sakriva cenovnike kada je nalog aktivan. Uklonjen IPS uplatnica deo, plaćanja idu isključivo automatski putem platnih kartica (Lemon Squeezy). U Demo modu prikazuje jasnu obavest da je nalog u režimu pregleda.
 
 ### 4. Javni Booking Link (`/[slug]`)

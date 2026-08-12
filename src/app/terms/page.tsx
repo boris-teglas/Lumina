@@ -50,7 +50,7 @@ export default function TermsPage() {
                 <Shield size={20} style={{ color: 'var(--primary)' }} /> 2. Opis usluge
               </h2>
               <p>
-                GlowLink pruža softversko rešenje u vidu usluge (SaaS) namenjeno salonima lepote i samostalnim radnicima u industriji lepote. Platforma omogućava kreiranje personalizovanih linkova za zakazivanje, upravljanje kalendarom, CRM bazu klijenata i digitalne loyalty programe.
+                GlowLink pruža softversko rešenje u vidu usluge (SaaS) namenjeno salonima lepote i samostalnim radnicima u industriji lepote. Platforma omogućava kreiranje personalizovanih linkova za zakazivanje, upravljanje kalendarom, CRM bazu klijenata i generator slika za Instagram.
               </p>
             </section>
 

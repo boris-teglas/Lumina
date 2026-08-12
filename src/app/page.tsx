@@ -77,7 +77,7 @@ export default function Home() {
             Pretvori pratioce sa Instagrama u <span style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>redovne klijente</span>
           </h1>
           <p className="hero-subtitle" style={{ color: 'var(--text-secondary)', fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto 40px auto', lineHeight: '1.6' }}>
-            Baci svesku i olovku. GlowLink ti pruža izolovani link za tvoj Instagram bio, pametan kalendar, digitalni loyalty program i zaštitu od no-show klijenata.
+            Baci svesku i olovku. GlowLink ti pruža izolovani link za tvoj Instagram bio, pametan kalendar, mini CRM bazu klijenata i zaštitu od no-show klijenata.
           </p>
 
           {/* Primary Action Buttons */}
@@ -125,16 +125,6 @@ export default function Home() {
               <h3 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Instagram Story Generator</h3>
               <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                 Zaboravi na sate u Canvi. Jednim klikom generiši prelepu sliku slobodnih termina za tvoj Story sa sopstvenim logoom i bojama salona.
-              </p>
-            </div>
-
-            <div className="glass-panel" style={{ padding: '32px' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', color: 'var(--accent-gold)' }}>
-                <Crown size={28} />
-              </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Digitalni Loyalty Program</h3>
-              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                Nema više papirnih kartica koje se gube. Sistem sam prepoznaje da je klijentkinja došla 4 puta i na 5. zakazivanju automatski odobrava gratis popust.
               </p>
             </div>
 
@@ -271,7 +261,6 @@ export default function Home() {
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} /> Neograničen broj klijenata i zakazivanja</li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} /> Personalizovan Instagram Link-in-bio</li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} /> Instagram Story Generator za slobodne slotove</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} /> Digitalni Loyalty kartoni sa pečatima</li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} /> Pametna Lista Čekanja i Zaštitna Crna Lista</li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} /> E-mail obaveštenja klijentima i salonu</li>
                 </ul>
