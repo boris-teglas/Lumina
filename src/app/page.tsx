@@ -35,13 +35,13 @@ export default function Home() {
             ✦ GlowLink
           </Link>
           <div className="nav-buttons-container" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <a href="#pricing" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600, marginRight: '8px' }}>
+            <a href="#pricing" className="nav-pricing-link" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600, marginRight: '8px' }}>
               Cenovnik
             </a>
             <Link href="/auth" className="btn btn-secondary" style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
               Prijavi se
             </Link>
-            <Link href="/dashboard?demo=true" className="btn btn-secondary" style={{ padding: '8px 14px', fontSize: '0.85rem', borderColor: 'rgba(236, 72, 153, 0.4)' }}>
+            <Link href="/dashboard?demo=true" className="btn btn-secondary nav-demo-dashboard-btn" style={{ padding: '8px 14px', fontSize: '0.85rem', borderColor: 'rgba(236, 72, 153, 0.4)' }}>
               Demo Nadzorna Tabla 📊
             </Link>
             <Link href="/jelena-nokti" className="btn btn-primary nav-demo-btn" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
@@ -53,19 +53,19 @@ export default function Home() {
 
       {/* Hero Section */}
       <main style={{ flex: 1 }}>
-        <section className="container animate-fade-in" style={{ padding: '70px 24px', textAlign: 'center' }}>
+        <section className="container hero-section animate-fade-in" style={{ padding: '70px 24px', textAlign: 'center' }}>
           <span className="badge badge-success" style={{ marginBottom: '16px', background: 'rgba(236, 72, 153, 0.1)', color: 'var(--primary)' }}>
             Nova era zakazivanja za salone lepote 🚀
           </span>
-          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: '1.15', marginBottom: '24px', maxWidth: '800px', margin: '0 auto 24px auto' }}>
+          <h1 className="hero-title" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: '1.15', marginBottom: '24px', maxWidth: '800px', margin: '0 auto 24px auto' }}>
             Pretvori pratioce sa Instagrama u <span style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>redovne klijente</span>
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto 40px auto', lineHeight: '1.6' }}>
+          <p className="hero-subtitle" style={{ color: 'var(--text-secondary)', fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto 40px auto', lineHeight: '1.6' }}>
             Baci svesku i olovku. GlowLink ti pruža izolovani link za tvoj Instagram bio, pametan kalendar, digitalni loyalty program i zaštitu od no-show klijenata.
           </p>
 
           {/* Primary Action Buttons (Inverted Hierarchy for max conversion) */}
-          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginBottom: '16px' }}>
+          <div className="hero-buttons-wrapper" style={{ display: 'flex', gap: '14px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginBottom: '16px' }}>
             <Link href="/jelena-nokti" className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '1.05rem', fontWeight: 'bold', boxShadow: '0 8px 24px rgba(236, 72, 153, 0.35)' }}>
               Isprobaj Demo Booking 🌸
             </Link>
@@ -78,11 +78,11 @@ export default function Home() {
           </div>
 
           {/* Micro-copy encouraging friction-free exploration */}
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+          <div className="hero-micro-copy" style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '8px' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>⚡ Bez registracije</span>
-            <span>•</span>
+            <span className="dot-separator">•</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>⏱ Instant pristup za 10 sekundi</span>
-            <span>•</span>
+            <span className="dot-separator">•</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>💳 Nije potrebna kartica</span>
           </div>
         </section>
