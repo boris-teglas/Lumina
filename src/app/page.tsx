@@ -286,7 +286,9 @@ export default function Home() {
       <footer style={{ borderTop: '1px solid var(--border-color)', padding: '32px 0', background: 'var(--bg-secondary)', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <span>© {new Date().getFullYear()} GlowLink. Sva prava zadržana.</span>
-          <div style={{ display: 'flex', gap: '24px' }}>
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+            <Link href="/terms" style={{ color: 'var(--text-muted)' }}>Uslovi Korišćenja</Link>
+            <Link href="/privacy" style={{ color: 'var(--text-muted)' }}>Politika Privatnosti</Link>
             <Link href="/dashboard" style={{ color: 'var(--text-muted)' }}>Dashboard</Link>
             <Link href="/jelena-nokti" style={{ color: 'var(--text-muted)' }}>Demo Kalendar</Link>
           </div>

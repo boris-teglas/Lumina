@@ -63,7 +63,7 @@ Svih 9 tabela u `public` šemi imaju omogućen **Row Level Security (RLS)** (`rl
 * Mini CRM baza klijenata sa privatnim zabeleškama.
 * Instagram Story Generator (izvoz slika slobodnih termina).
 * Ocene & Utisci klijenata.
-* **Pretplata & Račun:** Sakriva cenovnike i uplatnicu kada je nalog aktivan. U Demo modu prikazuje jasnu roze obavest da je nalog u režimu pregleda i onemogućava simulaciju pravih uplata.
+* **Pretplata & Račun:** Sakriva cenovnike kada je nalog aktivan. Uklonjen IPS uplatnica deo, plaćanja idu isključivo automatski putem platnih kartica (Lemon Squeezy). U Demo modu prikazuje jasnu obavest da je nalog u režimu pregleda.
 
 ### 4. Javni Booking Link (`/[slug]`)
 * Demo rezerva za `glowlink.me/jelena-nokti` i `glowlink.me/demo`.

@@ -395,9 +395,14 @@ export default function AuthPage() {
           Vidi Demo mod (bez registracije)
         </Link>
 
-        {/* Back Link */}
-        <div className="auth-back-link">
+        {/* Back Link & Legal */}
+        <div className="auth-back-link" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
           <Link href="/">← Nazad na početnu stranu</Link>
+          <div style={{ display: 'flex', gap: '16px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <Link href="/terms" style={{ color: 'var(--text-muted)' }}>Uslovi Korišćenja</Link>
+            <span>•</span>
+            <Link href="/privacy" style={{ color: 'var(--text-muted)' }}>Politika Privatnosti</Link>
+          </div>
         </div>
       </div>
     </div>
