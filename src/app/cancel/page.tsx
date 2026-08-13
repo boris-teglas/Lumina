@@ -28,25 +28,15 @@ function CancelBookingContent() {
 
     async function loadAppointment() {
       try {
-        const { data, error } = await supabase
-          .from('appointments')
-          .select(`
-            id,
-            start_time,
-            end_time,
-            status,
-            salons ( id, name, slug, phone, owner_email, theme_color ),
-            services ( name, price, duration_minutes ),
-            clients ( full_name, phone, email )
-          `)
-          .eq('id', appointmentId)
-          .single()
+        const res = await fetch(`/api/cancel-booking?id=${encodeURIComponent(appointmentId!)}`)
+        const json = await res.json()
 
-        if (error || !data) {
-          setErrorMessage('Termin nije pronađen ili je link nevažeći.')
+        if (!res.ok || !json.appointment) {
+          setErrorMessage(json.error || 'Termin nije pronađen ili je link nevažeći.')
           return
         }
 
+        const data = json.appointment
         setAppointment(data)
 
         if (data.status === 'cancelled') {
@@ -74,46 +64,18 @@ function CancelBookingContent() {
 
     setCancelling(true)
     try {
-      // 1. Update appointment status in Supabase
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status: 'cancelled' })
-        .eq('id', appointment.id)
+      const res = await fetch('/api/cancel-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: appointment.id })
+      })
 
-      if (error) throw error
+      const json = await res.json()
+      if (!res.ok) {
+        throw new Error(json.error || 'Greška pri otkazivanju.')
+      }
 
       setCancelled(true)
-
-      // 2. Notify Salon Owner via Email asynchronously
-      const salonOwnerEmail = appointment.salons?.owner_email
-      if (salonOwnerEmail) {
-        const startDate = new Date(appointment.start_time)
-        const formattedDate = startDate.toLocaleDateString('sr-RS', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        })
-        const formattedTime = startDate.toLocaleTimeString('sr-RS', {
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-
-        fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'cancellation_notification',
-            salonName: appointment.salons.name,
-            serviceName: appointment.services?.name || 'Usluga',
-            clientName: appointment.clients?.full_name || 'Klijent',
-            clientPhone: appointment.clients?.phone || '',
-            date: formattedDate,
-            time: formattedTime,
-            salonOwnerEmail: salonOwnerEmail
-          })
-        }).catch(err => console.warn('Failed sending cancellation email to owner:', err))
-      }
     } catch (err: any) {
       console.error(err)
       alert('Greška pri otkazivanju termina: ' + err.message)
