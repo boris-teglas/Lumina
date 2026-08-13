@@ -83,7 +83,6 @@ export async function POST(req: Request) {
           html: cancelOwnerHtml
         })
       }
-
       return NextResponse.json({ success: true })
     }
 
@@ -95,6 +94,10 @@ export async function POST(req: Request) {
         month: 'long',
         day: 'numeric'
       })
+
+      const cancelUrl = (appointmentId && String(appointmentId).trim())
+        ? `https://glowlink.me/cancel?id=${encodeURIComponent(String(appointmentId).trim())}`
+        : null
 
       const emailsToSend = []
 
@@ -165,8 +168,8 @@ export async function POST(req: Request) {
             <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 16px; margin-top: 28px; text-align: center;">
               <p style="color: #f8fafc; font-size: 13px; margin: 0 0 6px 0; font-weight: 600;">⚠️ Došlo je do promene plana?</p>
               <p style="color: #94a3b8; font-size: 12px; margin: 0 0 12px 0;">Otkazivanje je moguće najkasnije <strong>5 sati pre početka termina</strong>.</p>
-              ${appointmentId ? `
-                <a href="https://glowlink.me/cancel?id=${appointmentId}" style="display: inline-block; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+              ${cancelUrl ? `
+                <a href="${cancelUrl}" target="_blank" style="display: inline-block; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 20px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
                   ❌ Otkaži termin online
                 </a>
               ` : `
