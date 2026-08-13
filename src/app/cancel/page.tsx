@@ -28,15 +28,47 @@ function CancelBookingContent() {
 
     async function loadAppointment() {
       try {
-        const res = await fetch(`/api/cancel-booking?id=${encodeURIComponent(appointmentId!)}`)
-        const json = await res.json()
+        let data: any = null
 
-        if (!res.ok || !json.appointment) {
-          setErrorMessage(json.error || 'Termin nije pronađen ili je link nevažeći.')
+        // 1. Direct Supabase query (works client-side with RLS policies)
+        try {
+          const { data: sbData } = await supabase
+            .from('appointments')
+            .select(`
+              id,
+              start_time,
+              end_time,
+              status,
+              salons ( id, name, slug, phone, owner_email, theme_color ),
+              services ( name, price, duration_minutes ),
+              clients ( full_name, phone, email )
+            `)
+            .eq('id', appointmentId)
+            .maybeSingle()
+
+          if (sbData) data = sbData
+        } catch (e) {
+          console.warn('Direct Supabase fetch fallback error:', e)
+        }
+
+        // 2. Server API fallback if direct query returned null
+        if (!data) {
+          try {
+            const res = await fetch(`/api/cancel-booking?id=${encodeURIComponent(appointmentId!)}`)
+            if (res.ok) {
+              const json = await res.json()
+              data = json.appointment
+            }
+          } catch (e) {
+            console.warn('API route fetch fallback error:', e)
+          }
+        }
+
+        if (!data) {
+          setErrorMessage('Termin nije pronađen ili je link nevažeći.')
           return
         }
 
-        const data = json.appointment
         setAppointment(data)
 
         if (data.status === 'cancelled') {
@@ -64,15 +96,41 @@ function CancelBookingContent() {
 
     setCancelling(true)
     try {
-      const res = await fetch('/api/cancel-booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: appointment.id })
-      })
+      // 1. Update status in Supabase directly
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'cancelled' })
+        .eq('id', appointment.id)
 
-      const json = await res.json()
-      if (!res.ok) {
-        throw new Error(json.error || 'Greška pri otkazivanju.')
+      if (error) {
+        // Fallback to server API endpoint
+        const res = await fetch('/api/cancel-booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointmentId: appointment.id })
+        })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error || 'Greška pri otkazivanju.')
+      } else {
+        // Notify salon owner via email
+        const salonOwnerEmail = appointment.salons?.owner_email
+        if (salonOwnerEmail) {
+          const startDate = new Date(appointment.start_time)
+          fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'cancellation_notification',
+              salonName: appointment.salons.name,
+              serviceName: appointment.services?.name || 'Usluga',
+              clientName: appointment.clients?.full_name || 'Klijent',
+              clientPhone: appointment.clients?.phone || '',
+              date: startDate.toLocaleDateString('sr-RS'),
+              time: startDate.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' }),
+              salonOwnerEmail: salonOwnerEmail
+            })
+          }).catch(e => console.warn(e))
+        }
       }
 
       setCancelled(true)
