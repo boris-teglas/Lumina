@@ -162,10 +162,19 @@ function CancelBookingContent() {
           </div>
         ) : errorMessage ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '12px' }}>⚠️</div>
-            <h3 style={{ color: '#f87171', marginBottom: '8px' }}>Pristup onemogućen</h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '24px' }}>
-              {errorMessage}
+            <div style={{ fontSize: '3rem', marginBottom: '12px' }}>{!appointmentId ? '📩' : '⚠️'}</div>
+            <h3 style={{ color: !appointmentId ? 'var(--primary, #ec4899)' : '#f87171', marginBottom: '8px' }}>
+              {!appointmentId ? 'Otvorite link iz e-maila' : 'Termin nije pronađen'}
+            </h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.6', marginBottom: '24px' }}>
+              {!appointmentId ? (
+                <>
+                  Ova stranica služi za otkazivanje termina putem sigurnog linka koji dobijate u e-mail potvrdi rezervacije.<br /><br />
+                  Molimo Vas otvorite e-mail koji Vam je stigao nakon zakazivanja i kliknite na dugme <strong>&quot;Otkaži termin online&quot;</strong>.
+                </>
+              ) : (
+                errorMessage
+              )}
             </p>
             <Link href="/" style={{
               display: 'inline-flex',
