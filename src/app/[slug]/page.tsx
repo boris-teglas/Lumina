@@ -461,6 +461,7 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type: 'booking_confirmation',
+            appointmentId: appointmentData.id,
             clientEmail: clientEmail || null,
             clientName: clientName,
             clientPhone: clientPhone,

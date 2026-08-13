@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     const body = await req.json()
     const {
       type,
+      appointmentId,
       clientEmail,
       clientName,
       clientPhone,
@@ -33,6 +34,58 @@ export async function POST(req: Request) {
 
     // Default sender address using verified glowlink.me domain
     const sender = 'GlowLink <podrska@glowlink.me>'
+
+    if (type === 'cancellation_notification') {
+      if (salonOwnerEmail && salonOwnerEmail.includes('@')) {
+        const cancelOwnerHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+            .card { max-width: 560px; margin: 0 auto; background: #1e293b; border-radius: 16px; border: 1px solid #334155; padding: 32px; }
+            .header { text-align: center; border-bottom: 1px solid #334155; padding-bottom: 20px; margin-bottom: 20px; }
+            .logo { font-size: 22px; font-weight: 800; color: #ef4444; }
+            .title { font-size: 18px; color: #f8fafc; font-weight: 700; margin-top: 8px; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="header">
+              <div class="logo">✦ GlowLink Otkazivanje</div>
+              <div class="title">Klijent je otkazao termin ❌</div>
+            </div>
+
+            <p style="font-size: 15px; color: #cbd5e1;">Obaveštenje za salon <strong>${salonName}</strong>: Klijent je otkazao sledeći termin preko online linka.</p>
+
+            <div style="background: #0f172a; border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid rgba(239,68,68,0.3);">
+              <p style="margin: 6px 0; color: #94a3b8;"><strong>Klijent:</strong> <span style="color: #f8fafc;">${clientName}</span></p>
+              <p style="margin: 6px 0; color: #94a3b8;"><strong>Telefon:</strong> <span style="color: #f8fafc;">${clientPhone}</span></p>
+              <p style="margin: 6px 0; color: #94a3b8;"><strong>Usluga:</strong> <span style="color: #f8fafc;">${serviceName}</span></p>
+              <p style="margin: 6px 0; color: #94a3b8;"><strong>Otkazani Termin:</strong> <span style="color: #ef4444; font-weight: bold;">${date} u ${time}h</span></p>
+            </div>
+
+            <p style="font-size: 13px; color: #94a3b8; text-align: center;">Ovaj termin je oslobođen u Vašem kalendaru i spreman je za nove rezervacije.</p>
+
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="https://glowlink.me/dashboard" style="background: #334155; color: #ffffff; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Otvorite Nadzornu Tablu</a>
+            </div>
+          </div>
+        </body>
+        </html>
+        `
+
+        await resend.emails.send({
+          from: sender,
+          to: [salonOwnerEmail],
+          subject: `❌ Otkazan termin: ${clientName} - ${serviceName}`,
+          html: cancelOwnerHtml
+        })
+      }
+
+      return NextResponse.json({ success: true })
+    }
 
     if (type === 'booking_confirmation') {
       const formattedPrice = servicePrice ? `${servicePrice.toLocaleString('sr-RS')} RSD` : ''
@@ -108,8 +161,20 @@ export async function POST(req: Request) {
               <a href="https://glowlink.me/${salonSlug}" class="btn">Pogledaj profil salona</a>
             </div>
 
+            <!-- Cancellation Link Box -->
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 16px; margin-top: 28px; text-align: center;">
+              <p style="color: #f8fafc; font-size: 13px; margin: 0 0 6px 0; font-weight: 600;">⚠️ Došlo je do promene plana?</p>
+              <p style="color: #94a3b8; font-size: 12px; margin: 0 0 12px 0;">Otkazivanje je moguće najkasnije <strong>5 sati pre početka termina</strong>.</p>
+              ${appointmentId ? `
+                <a href="https://glowlink.me/cancel?id=${appointmentId}" style="display: inline-block; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                  ❌ Otkaži termin online
+                </a>
+              ` : `
+                <span style="color: #94a3b8; font-size: 12px;">Za otkazivanje molimo pozovite salon direktno.</span>
+              `}
+            </div>
+
             <div class="footer">
-              <p>Potrebna vam je izmena termina? Molimo kontaktirajte salon direktno na vreme.</p>
               <p>© ${new Date().getFullYear()} GlowLink.me – Pametno zakazivanje za kozmetičke salone.</p>
             </div>
           </div>
