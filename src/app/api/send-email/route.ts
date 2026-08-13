@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { createClient } from '@supabase/supabase-js'
 
 export async function POST(req: Request) {
   try {
@@ -32,11 +33,50 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing email type' }, { status: 400 })
     }
 
+    // Auto-resolve salon owner email from Supabase Auth if missing or not passed
+    let resolvedOwnerEmail = salonOwnerEmail
+    if (!resolvedOwnerEmail || !resolvedOwnerEmail.includes('@')) {
+      try {
+        const supabaseAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+        )
+
+        let ownerId = null
+        if (salonSlug) {
+          const { data: sData } = await supabaseAdmin
+            .from('salons')
+            .select('owner_id')
+            .eq('slug', salonSlug)
+            .maybeSingle()
+          if (sData) ownerId = sData.owner_id
+        }
+
+        if (!ownerId && appointmentId) {
+          const { data: aData } = await supabaseAdmin
+            .from('appointments')
+            .select('salons(owner_id)')
+            .eq('id', appointmentId)
+            .maybeSingle()
+          if ((aData as any)?.salons?.owner_id) ownerId = (aData as any).salons.owner_id
+        }
+
+        if (ownerId) {
+          const { data: userData } = await supabaseAdmin.auth.admin.getUserById(ownerId)
+          if (userData?.user?.email) {
+            resolvedOwnerEmail = userData.user.email
+          }
+        }
+      } catch (e) {
+        console.warn('Failed resolving salon owner email in send-email route:', e)
+      }
+    }
+
     // Default sender address using verified glowlink.me domain
     const sender = 'GlowLink <podrska@glowlink.me>'
 
     if (type === 'cancellation_notification') {
-      if (salonOwnerEmail && salonOwnerEmail.includes('@')) {
+      if (resolvedOwnerEmail && resolvedOwnerEmail.includes('@')) {
         const cancelOwnerHtml = `
         <!DOCTYPE html>
         <html>
@@ -78,7 +118,7 @@ export async function POST(req: Request) {
 
         await resend.emails.send({
           from: sender,
-          to: [salonOwnerEmail],
+          to: [resolvedOwnerEmail],
           subject: `❌ Otkazan termin: ${clientName} - ${serviceName}`,
           html: cancelOwnerHtml
         })
@@ -196,7 +236,7 @@ export async function POST(req: Request) {
       }
 
       // 2. Email to Salon Owner (if owner email exists)
-      if (salonOwnerEmail && salonOwnerEmail.includes('@')) {
+      if (resolvedOwnerEmail && resolvedOwnerEmail.includes('@')) {
         const ownerHtml = `
         <!DOCTYPE html>
         <html>
@@ -240,7 +280,7 @@ export async function POST(req: Request) {
         emailsToSend.push(
           resend.emails.send({
             from: sender,
-            to: [salonOwnerEmail],
+            to: [resolvedOwnerEmail],
             subject: `Nova rezervacija: ${clientName} - ${serviceName}`,
             html: ownerHtml
           })

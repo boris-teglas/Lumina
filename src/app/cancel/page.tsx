@@ -113,24 +113,22 @@ function CancelBookingContent() {
         if (!res.ok) throw new Error(json.error || 'Greška pri otkazivanju.')
       } else {
         // Notify salon owner via email
-        const salonOwnerEmail = appointment.salons?.owner_email
-        if (salonOwnerEmail) {
-          const startDate = new Date(appointment.start_time)
-          fetch('/api/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'cancellation_notification',
-              salonName: appointment.salons.name,
-              serviceName: appointment.services?.name || 'Usluga',
-              clientName: appointment.clients?.full_name || 'Klijent',
-              clientPhone: appointment.clients?.phone || '',
-              date: startDate.toLocaleDateString('sr-RS'),
-              time: startDate.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' }),
-              salonOwnerEmail: salonOwnerEmail
-            })
-          }).catch(e => console.warn(e))
-        }
+        const startDate = new Date(appointment.start_time)
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'cancellation_notification',
+            appointmentId: appointment.id,
+            salonSlug: appointment.salons?.slug,
+            salonName: appointment.salons?.name,
+            serviceName: appointment.services?.name || 'Usluga',
+            clientName: appointment.clients?.full_name || 'Klijent',
+            clientPhone: appointment.clients?.phone || '',
+            date: startDate.toLocaleDateString('sr-RS'),
+            time: startDate.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })
+          })
+        }).catch(e => console.warn(e))
       }
 
       setCancelled(true)
