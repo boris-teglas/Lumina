@@ -81,8 +81,9 @@ Svih 9 tabela u `public` šemi imaju omogućen **Row Level Security (RLS)** (`rl
 * **Uslovi Korišćenja (`/terms`):** Pravna pravila korišćenja platforme, pravila pretplate, otkazivanja i ograničenja odgovornosti (neophodno za merchant verifikaciju na Lemon Squeezy-ju).
 * Povezani linkovi u podnožju (Footer) početne stranice i ekrana za prijavu.
 
-### 7. Resend E-mail Automatizacija (`/api/send-email`)
+### 7. Resend E-mail Automatizacija & Otkazivanje (`/api/send-email` & `/cancel`)
 * Verifikovan domen `glowlink.me` na Resend servisu preko Namecheap DNS zapisa (DKIM, SPF MX, SPF TXT, DMARC).
+* **Automatsko Otkazivanje Termina (`/cancel`):** Svaki e-mail za potvrdu rezervacije sadrži dugme sa unikatnim linkom za otkazivanje termina. Otkazivanje preko linka je dozvoljeno najkasnije **5 sati pre početka termina**. Ako je ostalo manje od 5 sati, sistem obaveštava klijentkinju da za kasno otkazivanje mora pozvati salon direktno i prikazuje dugme za brzi poziv salona. Prilikom uspešnog otkazivanja, status se menja u `cancelled` i vlasnici salona stiže e-mail notifikacija.
 * Povezan Resend API sa skladištenim ključem u `.env.local`.
 * Automatsko slanje prelepih HTML e-mail obaveštenja sa adrese `podrska@glowlink.me`:
   - **Potvrda klijentu:** Detalji rezervacije, vreme, cena, trajanje i podsetnik za "Tihi termin".
