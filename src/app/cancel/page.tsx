@@ -39,7 +39,7 @@ function CancelBookingContent() {
               start_time,
               end_time,
               status,
-              salons ( id, name, slug, phone, owner_email, theme_color ),
+              salons ( id, name, slug, theme_color ),
               services ( name, price, duration_minutes ),
               clients ( full_name, phone, email )
             `)

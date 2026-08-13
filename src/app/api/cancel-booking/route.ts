@@ -25,7 +25,7 @@ export async function GET(req: Request) {
         start_time,
         end_time,
         status,
-        salons ( id, name, slug, phone, owner_email, theme_color ),
+        salons ( id, name, slug, theme_color ),
         services ( name, price, duration_minutes ),
         clients ( full_name, phone, email )
       `)
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
         id,
         start_time,
         status,
-        salons ( name, phone, owner_email ),
+        salons ( id, name, owner_id ),
         services ( name ),
         clients ( full_name, phone )
       `)
@@ -97,7 +97,15 @@ export async function POST(req: Request) {
     }
 
     // 3. Notify salon owner via Email asynchronously
-    const salonOwnerEmail = (app as any).salons?.owner_email
+    let salonOwnerEmail = null
+    if ((app as any).salons?.owner_id) {
+      try {
+        const { data: userData } = await supabase.auth.admin.getUserById((app as any).salons.owner_id)
+        salonOwnerEmail = userData?.user?.email || null
+      } catch (e) {
+        console.warn('Failed getting owner email:', e)
+      }
+    }
     if (salonOwnerEmail) {
       const formattedDate = startTime.toLocaleDateString('sr-RS', {
         weekday: 'long',
