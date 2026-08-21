@@ -241,10 +241,10 @@ export default function Home() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', maxWidth: '900px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', maxWidth: '900px', margin: '0 auto', paddingTop: '16px' }}>
             
             {/* Monthly Card */}
-            <div className="glass-panel" style={{ padding: '36px 28px', borderRadius: '20px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', transition: 'transform 0.3s ease' }}>
+            <div className="glass-panel" style={{ padding: '36px 28px', borderRadius: '20px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', transition: 'transform 0.3s ease', overflow: 'visible' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <h3 style={{ margin: 0, fontSize: '1.4rem' }}>Mesečni Paket</h3>
@@ -271,9 +271,9 @@ export default function Home() {
             </div>
 
             {/* Yearly Card */}
-            <div className="glass-panel" style={{ padding: '36px 28px', borderRadius: '20px', border: '2px solid var(--accent-gold)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', background: 'rgba(212, 175, 55, 0.03)' }}>
-              <div style={{ position: 'absolute', top: '-14px', right: '28px', background: 'var(--accent-gold)', color: '#1c1917', fontSize: '0.8rem', fontWeight: 800, padding: '4px 14px', borderRadius: '20px', textTransform: 'uppercase', boxShadow: '0 4px 16px rgba(212,175,55,0.4)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Crown size={14} /> Ušteda 2 meseca GRATIS
+            <div className="glass-panel" style={{ padding: '36px 28px', borderRadius: '20px', border: '2px solid var(--accent-gold)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', background: 'rgba(212, 175, 55, 0.03)', overflow: 'visible' }}>
+              <div style={{ position: 'absolute', top: '-14px', right: '24px', background: 'var(--accent-gold)', color: '#1c1917', fontSize: '0.8rem', fontWeight: 800, padding: '6px 14px', borderRadius: '20px', textTransform: 'uppercase', boxShadow: '0 4px 16px rgba(212,175,55,0.4)', display: 'flex', alignItems: 'center', gap: '6px', zIndex: 10, whiteSpace: 'nowrap' }}>
+                <Crown size={14} /> UŠTEDA 3 MESECA GRATIS
               </div>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -290,7 +290,7 @@ export default function Home() {
                 </div>
                 <ul style={{ paddingLeft: '0', listStyle: 'none', margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> <strong>Sve iz mesečnog paketa</strong></li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> <strong>2 meseca plaćanja u potpunosti GRATIS</strong></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> <strong>3 meseca plaćanja u potpunosti GRATIS</strong></li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> 🎁 <strong>White-Glove podrška:</strong> Mi unosimo cene i usluge za 5 min</li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> Prioritetna VIP podrška 24/7</li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle2 size={18} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} /> Garancija fiksne cene (bez poskupljenja)</li>

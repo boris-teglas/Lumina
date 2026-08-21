@@ -3011,9 +3011,9 @@ export default function Dashboard() {
                     </div>
 
                     {/* Yearly Subscription Card */}
-                    <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: billingPeriod === 'yearly' ? '2px solid var(--accent-gold)' : '1px solid var(--border-color)', background: 'rgba(255, 255, 255, 0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '340px', transition: 'all 0.3s ease', position: 'relative' }}>
-                      <div style={{ position: 'absolute', top: '-12px', right: '20px', background: 'var(--accent-gold)', color: '#1c1917', fontSize: '0.75rem', fontWeight: 'bold', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', boxShadow: '0 4px 12px rgba(212,175,55,0.3)' }}>
-                        Ušteda 25% 🎁
+                    <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: billingPeriod === 'yearly' ? '2px solid var(--accent-gold)' : '1px solid var(--border-color)', background: 'rgba(255, 255, 255, 0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '340px', transition: 'all 0.3s ease', position: 'relative', overflow: 'visible' }}>
+                      <div style={{ position: 'absolute', top: '-12px', right: '20px', background: 'var(--accent-gold)', color: '#1c1917', fontSize: '0.75rem', fontWeight: 'bold', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', boxShadow: '0 4px 12px rgba(212,175,55,0.3)', zIndex: 10, whiteSpace: 'nowrap' }}>
+                        Ušteda 3 meseca GRATIS 🎁
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
                         <div>
@@ -3029,7 +3029,7 @@ export default function Dashboard() {
                           <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                             <li> Sve iz mesečnog paketa</li>
                             <li> Prioritetna podrška 24/7</li>
-                            <li> <strong>2 meseca GRATIS</strong></li>
+                            <li> <strong>3 meseca GRATIS</strong></li>
                             <li> Garantovano fiksna cena</li>
                           </ul>
                         </div>
