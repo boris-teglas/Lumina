@@ -63,7 +63,7 @@ Svih 9 tabela u `public` šemi imaju omogućen **Row Level Security (RLS)** (`rl
 * Mini CRM baza klijenata sa privatnim zabeleškama.
 * Instagram Story Generator (izvoz slika slobodnih termina).
 * Ocene & Utisci klijenata.
-* **Pretplata & Račun:** Sakriva cenovnike kada je nalog aktivan. Uklonjen IPS uplatnica deo, plaćanja idu isključivo automatski putem platnih kartica (Lemon Squeezy). U Demo modu prikazuje jasnu obavest da je nalog u režimu pregleda.
+* **Pretplata & Račun:** Sakriva cenovnike kada je nalog aktivan. Uklonjen IPS uplatnica deo, plaćanja idu isključivo automatski putem platnih kartica (Paddle). U Demo modu prikazuje jasnu obavest da je nalog u režimu pregleda.
 
 ### 4. Javni Booking Link (`/[slug]`)
 * Demo rezerva za `glowlink.me/jelena-nokti` i `glowlink.me/demo`.
@@ -71,9 +71,9 @@ Svih 9 tabela u `public` šemi imaju omogućen **Row Level Security (RLS)** (`rl
 * Upišite se na listu čekanja ako su termini popunjeni.
 * Slanje recenzija i ocena.
 
-### 5. Lemon Squeezy Integracija (`/api/webhooks/lemonsqueezy`)
-* Prenos `checkout[custom][salon_id]` parametra.
-* Webhook Callback URL: `https://glowlink.me/api/webhooks/lemonsqueezy`.
+### 5. Paddle Integracija (`/api/webhooks/paddle`)
+* Prenos `custom_data.salon_id` parametra.
+* Webhook Callback URL: `https://www.glowlink.me/api/webhooks/paddle`.
 * Automatsko prebacivanje statusa u `active` i produžavanje roka pretplate u Supabase bazi.
 
 ### 7. Pravne Stranice & GDPR Usaglašenost

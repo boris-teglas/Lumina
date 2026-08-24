@@ -2906,8 +2906,11 @@ export default function Dashboard() {
             <Script src="https://cdn.paddle.com/paddle/v2/paddle.js" strategy="lazyOnload" onLoad={() => {
               if (typeof window !== 'undefined' && (window as any).Paddle) {
                 try {
-                  (window as any).Paddle.Environment.set('sandbox')
-                  ;(window as any).Paddle.Initialize({ token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN })
+                  const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || ''
+                  if (token.startsWith('test_')) {
+                    (window as any).Paddle.Environment.set('sandbox')
+                  }
+                  ;(window as any).Paddle.Initialize({ token })
                 } catch (e) {
                   console.error('Failed to init Paddle:', e)
                 }
