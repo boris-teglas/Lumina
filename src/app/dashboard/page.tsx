@@ -3007,6 +3007,7 @@ export default function Dashboard() {
                                   items: [{ priceId: process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID, quantity: 1 }],
                                   customer: { email: session?.user?.email || '' },
                                   customData: { salon_id: salon?.id },
+                                  settings: { successUrl: 'https://glowlink.me/dashboard' },
                                 })
                               }
                             }}
@@ -3056,6 +3057,7 @@ export default function Dashboard() {
                                   items: [{ priceId: process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID, quantity: 1 }],
                                   customer: { email: session?.user?.email || '' },
                                   customData: { salon_id: salon?.id },
+                                  settings: { successUrl: 'https://glowlink.me/dashboard' },
                                 })
                               }
                             }}
