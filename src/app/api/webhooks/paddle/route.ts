@@ -62,7 +62,12 @@ export async function POST(request: NextRequest) {
   let dbStatus = 'expired'
   let expiresAt: string | null = null
 
-  if (eventType === 'subscription.activated' || eventType === 'subscription.updated' || eventType === 'subscription.created') {
+  if (eventType === 'transaction.completed' || eventType === 'transaction.paid') {
+    if (data.status === 'completed' || data.status === 'paid') {
+      dbStatus = 'active'
+      expiresAt = data.billing_period?.ends_at || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  } else if (eventType === 'subscription.activated' || eventType === 'subscription.updated' || eventType === 'subscription.created') {
     if (status === 'active' || status === 'trialing') {
       dbStatus = 'active'
       expiresAt = nextBilledAt || currentBillingPeriod?.ends_at || null
