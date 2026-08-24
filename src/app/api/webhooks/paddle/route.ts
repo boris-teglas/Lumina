@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'node:crypto'
 import { createAdminClient } from '@/utils/supabase/admin'
 
@@ -62,13 +62,10 @@ export async function POST(request: NextRequest) {
   let dbStatus = 'expired'
   let expiresAt: string | null = null
 
-  if (eventType === 'subscription.activated' || eventType === 'subscription.updated') {
-    if (status === 'active') {
+  if (eventType === 'subscription.activated' || eventType === 'subscription.updated' || eventType === 'subscription.created') {
+    if (status === 'active' || status === 'trialing') {
       dbStatus = 'active'
       expiresAt = nextBilledAt || currentBillingPeriod?.ends_at || null
-    } else if (status === 'trialing') {
-      dbStatus = 'trial'
-      expiresAt = currentBillingPeriod?.ends_at || null
     } else if (status === 'canceled') {
       const endsAt = scheduledChange?.effective_at || currentBillingPeriod?.ends_at
       if (endsAt && new Date(endsAt).getTime() > Date.now()) {
