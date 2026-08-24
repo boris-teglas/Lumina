@@ -70,7 +70,7 @@ export default function PrivacyPage() {
               </ul>
               <p style={{ marginTop: '12px' }}>
                 <strong>Treće strane:</strong> Ne prodajemo i ne iznajmljujemo lične podatke. Podatke delimo isključivo sa pouzdanim infrastrukturalnim partnerima:
-                Supabase (sigurna baza podataka), Resend (slanje transakcionih mailova) i Lemon Squeezy (procesor kartičnog plaćanja).
+                Supabase (sigurna baza podataka), Resend (slanje transakcionih mailova) i Paddle (licencirani Merchant of Record i procesor kartičnog plaćanja).
               </p>
             </section>
 
