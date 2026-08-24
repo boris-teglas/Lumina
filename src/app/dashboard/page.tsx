@@ -2903,12 +2903,13 @@ export default function Dashboard() {
               </div>
             )}
 
-            <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="lazyOnload" onLoad={() => {
-              if (typeof window !== 'undefined' && (window as any).createLemonSqueezy) {
+            <Script src="https://cdn.paddle.com/paddle/v2/paddle.js" strategy="lazyOnload" onLoad={() => {
+              if (typeof window !== 'undefined' && (window as any).Paddle) {
                 try {
-                  (window as any).createLemonSqueezy()
+                  (window as any).Paddle.Environment.set('sandbox')
+                  ;(window as any).Paddle.Initialize({ token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN })
                 } catch (e) {
-                  console.error('Failed to init LemonSqueezy overlay:', e)
+                  console.error('Failed to init Paddle:', e)
                 }
               }
             }} />
@@ -2991,21 +2992,27 @@ export default function Dashboard() {
                           </ul>
                         </div>
                         <div style={{ marginTop: '24px' }}>
-                          <a
-                            className="btn btn-primary lemonsqueezy-button"
-                            href={demoMode ? '#' : `https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_MONTHLY_VARIANT_ID || 'ea40e779-3ae5-4cc4-abfa-3198bd0cbd13'}?embed=1&dark=1&checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
-                            style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none', opacity: demoMode ? 0.7 : 1 }}
-                            onClick={(e) => {
+                          <button
+                            className="btn btn-primary"
+                            disabled={demoMode}
+                            style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', opacity: demoMode ? 0.7 : 1, cursor: demoMode ? 'not-allowed' : 'pointer' }}
+                            onClick={() => {
                               if (demoMode) {
-                                e.preventDefault()
                                 alert('Trenutno ste u Demo modu. Plaćanje pretplate nije moguće u režimu pregleda.')
                                 return
                               }
-                              setBillingPeriod('monthly')
+                              if (typeof window !== 'undefined' && (window as any).Paddle) {
+                                setBillingPeriod('monthly')
+                                ;(window as any).Paddle.Checkout.open({
+                                  items: [{ priceId: process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID, quantity: 1 }],
+                                  customer: { email: session?.user?.email || '' },
+                                  customData: { salon_id: salon?.id },
+                                })
+                              }
                             }}
                           >
                             Aktiviraj Mesečno 💳
-                          </a>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -3034,21 +3041,27 @@ export default function Dashboard() {
                           </ul>
                         </div>
                         <div style={{ marginTop: '24px' }}>
-                          <a
-                            className="btn lemonsqueezy-button"
-                            href={demoMode ? '#' : `https://lumina.lemonsqueezy.com/checkout/buy/${process.env.NEXT_PUBLIC_LEMONSQUEEZY_YEARLY_VARIANT_ID || '0f6fc52c-7e05-4e50-a838-31a67fd147a8'}?embed=1&dark=1&checkout[custom][salon_id]=${salon?.id}&checkout[email]=${encodeURIComponent(session?.user?.email || '')}`}
-                            style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', textDecoration: 'none', background: 'var(--accent-gold)', borderColor: 'var(--accent-gold)', color: '#1c1917', opacity: demoMode ? 0.7 : 1 }}
-                            onClick={(e) => {
+                          <button
+                            className="btn"
+                            disabled={demoMode}
+                            style={{ display: 'flex', width: '100%', justifyContent: 'center', padding: '12px', fontWeight: 'bold', background: 'var(--accent-gold)', borderColor: 'var(--accent-gold)', color: '#1c1917', opacity: demoMode ? 0.7 : 1, cursor: demoMode ? 'not-allowed' : 'pointer' }}
+                            onClick={() => {
                               if (demoMode) {
-                                e.preventDefault()
                                 alert('Trenutno ste u Demo modu. Plaćanje pretplate nije moguće u režimu pregleda.')
                                 return
                               }
-                              setBillingPeriod('yearly')
+                              if (typeof window !== 'undefined' && (window as any).Paddle) {
+                                setBillingPeriod('yearly')
+                                ;(window as any).Paddle.Checkout.open({
+                                  items: [{ priceId: process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID, quantity: 1 }],
+                                  customer: { email: session?.user?.email || '' },
+                                  customData: { salon_id: salon?.id },
+                                })
+                              }
                             }}
                           >
                             Aktiviraj Godišnje 👑
-                          </a>
+                          </button>
                         </div>
                       </div>
                     </div>
