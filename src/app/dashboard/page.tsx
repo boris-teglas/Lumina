@@ -2945,20 +2945,20 @@ export default function Dashboard() {
               
               <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                 {salon?.subscription_status === 'active' && (
-                  <div style={{ display: 'inline-block', background: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', padding: '10px 18px', borderRadius: '8px', fontSize: '0.85rem', color: '#4ade80', fontWeight: 'bold' }}>
-                    Aktivno plaćanje karticom 💳
-                  </div>
-                )}
-                {salon?.billing_portal_url && (
-                  <a
-                    href={salon.billing_portal_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-secondary"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', padding: '10px 18px', textDecoration: 'none', background: 'rgba(255, 255, 255, 0.05)', borderColor: 'var(--border-color)', color: '#ffffff' }}
-                  >
-                    ⚙ Upravljaj pretplatom
-                  </a>
+                  <>
+                    <div style={{ display: 'inline-block', background: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', padding: '10px 18px', borderRadius: '8px', fontSize: '0.85rem', color: '#4ade80', fontWeight: 'bold' }}>
+                      Aktivno plaćanje karticom 💳
+                    </div>
+                    <a
+                      href="/api/billing/portal"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', padding: '10px 18px', textDecoration: 'none', background: 'rgba(255, 255, 255, 0.05)', borderColor: 'var(--border-color)', color: '#ffffff' }}
+                    >
+                      ⚙ Upravljaj pretplatom / Otkaži
+                    </a>
+                  </>
                 )}
               </div>
             </div>
@@ -3081,17 +3081,15 @@ export default function Dashboard() {
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', margin: 0, maxWidth: '540px', lineHeight: '1.6' }}>
                   Hvala Vam što koristite GlowLink. Vaša licenca je u potpunosti aktivirana i automatski se obnavlja. Sve funkcije platforme (planer, CRM, story generator, zaštitna crna lista) su Vam otključane.
                 </p>
-                {salon?.billing_portal_url && (
-                  <a
-                    href={salon.billing_portal_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-primary"
-                    style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    ⚙ Upravljaj plaćanjem i karticama
-                  </a>
-                )}
+                <a
+                  href="/api/billing/portal"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary"
+                  style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                >
+                  ⚙ Upravljaj pretplatom ili otkaži ➔
+                </a>
               </div>
             )}
             </div>
