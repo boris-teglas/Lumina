@@ -62,7 +62,7 @@ export default function TermsPage() {
                 <li><strong>Probni period (Trial):</strong> Novi korisnici mogu ostvariti pravo na besplatan probni period. Nije potrebna platna kartica za započinjanje probnog perioda.</li>
                 <li><strong>Planovi pretplate:</strong> Nakon isteka probnog perioda, korišćenje platforme se naplaćuje prema mesečnom ili godišnjem cenovniku istaknutom u kontrolnoj tabli.</li>
                 <li><strong>Otkazivanje pretplate:</strong> Pretplatu možete otkazati u bilo kom trenutku jednim klikom putem korisničkog portala. Nakon otkazivanja, vaša licenca ostaje aktivna do kraja već uplaćenog obračunskog perioda.</li>
-                <li><strong>Povraćaj sredstava:</strong> Usled prirode digitalnih usluga, izvršena uplaćena sredstva se ne refundiraju, ali nemate daljih obaveza nakon otkazivanja.</li>
+                <li><strong>Politika povraćaja novca (14 dana garancije povraćaja):</strong> U skladu sa standardnim Paddle uslovima poslovanja (Paddle Buyer Terms) i zaštite kupaca, korisnici imaju pravo na pun povraćaj uplaćenog iznosa u roku od 14 dana od datuma kupovine pretplate. Zahtev za refundaciju možete uputiti u bilo kom trenutku na e-mail: <strong>podrska@glowlink.me</strong> ili direktno preko Paddle korisničkog portala.</li>
               </ul>
             </section>
 
