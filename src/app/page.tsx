@@ -304,43 +304,34 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Testimonials Section */}
+        {/* How It Works Section */}
         <section className="container" style={{ padding: '40px 24px 80px 24px', borderTop: '1px solid var(--border-color)' }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '12px', fontSize: '2.25rem' }}>Šta kažu devojke koje koriste GlowLink?</h2>
-          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '48px', fontSize: '1rem' }}>Preko 100+ devojaka je već bacilo sveske i olovke</p>
+          <h2 style={{ textAlign: 'center', marginBottom: '12px', fontSize: '2.25rem' }}>Kako funkcioniše?</h2>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '48px', fontSize: '1rem' }}>Za 5 minuta si spremna — bez tehničkog znanja</p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            <div className="glass-panel" style={{ padding: '24px' }}>
-              <div style={{ color: 'var(--accent-gold)', marginBottom: '12px', display: 'flex', gap: '4px' }}>
-                {[...Array(5)].map((_, i) => <Star key={i} size={18} fill="var(--accent-gold)" color="var(--accent-gold)" />)}
-              </div>
-              <p style={{ fontStyle: 'italic', marginBottom: '20px', lineHeight: '1.6', fontSize: '0.95rem' }}>
-                "Otkad imam svoj GlowLink u opisu Instagrama, više ne trošim vreme na kuckanje poruka uveče. Klijentkinje same zakazuju, a Story Generator mi štedi sate dizajna."
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' }}>
+            <div className="glass-panel" style={{ padding: '32px 24px', textAlign: 'center' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--accent-pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>1</div>
+              <h3 style={{ marginBottom: '12px', fontSize: '1.15rem' }}>Napraviš profil</h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>
+                Popuniš naziv salona, usluge i cene. GlowLink automatski generiše tvoj booking link koji staviš u bio na Instagramu.
               </p>
-              <strong>Jelena M.</strong> <br />
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Nail Artist, Novi Sad</span>
             </div>
 
-            <div className="glass-panel" style={{ padding: '24px' }}>
-              <div style={{ color: 'var(--accent-gold)', marginBottom: '12px', display: 'flex', gap: '4px' }}>
-                {[...Array(5)].map((_, i) => <Star key={i} size={18} fill="var(--accent-gold)" color="var(--accent-gold)" />)}
-              </div>
-              <p style={{ fontStyle: 'italic', marginBottom: '20px', lineHeight: '1.6', fontSize: '0.95rem' }}>
-                "CRM karton je neverovatna caka. Kada klijentkinja dođe i kažem joj 'Hoćemo li istu crvenu boju od prošlog puta i da pazim na zanoktice?', stvara se neverovatan wow efekat profesionalizma."
+            <div className="glass-panel" style={{ padding: '32px 24px', textAlign: 'center' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--accent-pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>2</div>
+              <h3 style={{ marginBottom: '12px', fontSize: '1.15rem' }}>Klijentkinja sama zakazuje</h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>
+                Ona otvori link, izabere uslugu i termin koji joj odgovara — bez poruka, bez čekanja. Potvrda stigne automatski.
               </p>
-              <strong>Marija K.</strong> <br />
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Make-Up Artist, Beograd</span>
             </div>
 
-            <div className="glass-panel" style={{ padding: '24px' }}>
-              <div style={{ color: 'var(--accent-gold)', marginBottom: '12px', display: 'flex', gap: '4px' }}>
-                {[...Array(5)].map((_, i) => <Star key={i} size={18} fill="var(--accent-gold)" color="var(--accent-gold)" />)}
-              </div>
-              <p style={{ fontStyle: 'italic', marginBottom: '20px', lineHeight: '1.6', fontSize: '0.95rem' }}>
-                "Crna lista je spas! Klijentkinje koje zakažu pa se ne pojave sada idu na ručno odobrenje i moraju da mi uplate depozit pre potvrde. Više nemam praznih rupa u kalendaru."
+            <div className="glass-panel" style={{ padding: '32px 24px', textAlign: 'center' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--accent-pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>3</div>
+              <h3 style={{ marginBottom: '12px', fontSize: '1.15rem' }}>Ti se fokusiraš na posao</h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>
+                Pratić tvoj raspored, podsetnici idu klijentima automatski, a ti imaš sve na jednom mestu — kalendar, kartoni, statistika.
               </p>
-              <strong>Sanja T.</strong> <br />
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Kozmetički Salon, Niš</span>
             </div>
           </div>
         </section>
